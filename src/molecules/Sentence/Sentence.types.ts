@@ -1,1 +1,3 @@
-export interface TitlePropsType {}
+export interface SentencePropsType {
+  children: React.ReactNode;
+}

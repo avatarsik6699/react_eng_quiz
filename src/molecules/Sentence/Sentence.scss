@@ -1,7 +1,55 @@
 .sentence {
   border: 2px solid #252525;
   border-radius: 10px;
-  margin: 25px;
   max-width: 200px;
-  min-height: 50px;
+  position: relative;
+  margin-left: 34px;
+  padding: 6px;
+}
+
+.sentence__tip {
+  display: inline-block;
+  width: 7px;
+  height: 10px;
+  background: white;
+  position: absolute;
+  top: 27px;
+  left: -7px;
+  &::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 1.4px;
+    background: black;
+    border-radius: 9px;
+    top: 4px;
+    left: -5px;
+    transform: rotate(130deg);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    height: 1.4px;
+    width: 9px;
+    background: black;
+    border-radius: 10px;
+    top: 9px;
+    right: 0.1px;
+  }
+}
+
+.sentence__word-list {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: flex;
+  flex-flow: row wrap;
+  gap: 7px;
+  overflow: auto;
+  max-height: 70px;
+}
+
+.sentence__word-item {
+  flex: 1 0 auto;
 }
