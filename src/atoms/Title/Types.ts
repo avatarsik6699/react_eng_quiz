@@ -1,1 +1,3 @@
-export interface TitlePropsType {}
+export interface TitlePropsType {
+  content: string;
+}
