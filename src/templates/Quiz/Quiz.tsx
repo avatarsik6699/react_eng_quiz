@@ -6,6 +6,7 @@ import SentenceWord from '../../atoms/SentenceWord/SentenceWord';
 import Title from '../../atoms/Title/Title';
 import DropZone from '../../molecules/DropZone/DropZone';
 
+
 import Sentence from '../../molecules/Sentence/Sentence';
 const sentenceWords = [
   'She',
