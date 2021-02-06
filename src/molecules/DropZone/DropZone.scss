@@ -1,24 +1,23 @@
 .drop-zone {
   display: flex;
-  max-width: 470px;
   flex-flow: row wrap;
   gap: 10px;
+  max-width: 470px;
   padding: 10px;
 
   &__wrapper {
-    flex-grow: 1;
     display: flex;
-    grid-gap: 10px;
+    flex-grow: 1;
     gap: 10px;
+    justify-content: space-between;
     border-top: 2px solid #cecccc;
     padding: 10px 0px;
-    list-style-type: none;
     margin: 0;
-    justify-content: space-between;
+    list-style-type: none;
   }
 
   &__wrapper:last-child {
-    border-bottom: 2px solid #cecccc;
     justify-content: flex-start;
+    border-bottom: 2px solid #cecccc;
   }
 }

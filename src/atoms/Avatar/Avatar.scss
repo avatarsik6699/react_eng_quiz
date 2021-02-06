@@ -4,22 +4,22 @@
 }
 
 .avatar__img-default {
-  background: #6c6c6c;
-  border-radius: 10em;
+  position: relative;
   width: 114px;
   height: 114px;
-  position: relative;
+  border-radius: 10em;
+  background: #6c6c6c;
   &::after {
     content: '';
     position: absolute;
-    background: #6c6c6c;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
-    border-top-left-radius: 5em;
-    border-top-right-radius: 5em;
     width: 185.65px;
     height: 93.5px;
     top: 100px;
     left: -35px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 5em;
+    border-top-right-radius: 5em;
+    background: #6c6c6c;
   }
 }

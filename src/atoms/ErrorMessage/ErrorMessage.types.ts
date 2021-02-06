@@ -1,1 +1,3 @@
-export interface ErrorMessagePropsType {}
+export interface ErrorMessagePropsType {
+  content: string;
+}

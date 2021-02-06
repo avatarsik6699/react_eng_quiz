@@ -1,29 +1,29 @@
 .sentence {
+  position: relative;
+  max-width: 200px;
+  max-height: 69px;
+  padding: 6px;
   border: 2px solid #252525;
   border-radius: 10px;
-  max-width: 200px;
-  position: relative;
-  padding: 6px;
-  max-height: 69px;
 }
 
 .sentence__tip {
   display: inline-block;
+  position: absolute;
   width: 7px;
   height: 10px;
-  background: white;
-  position: absolute;
   top: 60%;
   left: -7px;
+  background: white;
   &::after {
     content: '';
     position: absolute;
     width: 14px;
     height: 1.4px;
-    background: black;
-    border-radius: 9px;
     top: 4px;
     left: -5px;
+    border-radius: 9px;
+    background: black;
     transform: rotate(130deg);
   }
 
@@ -32,22 +32,22 @@
     position: absolute;
     height: 1.4px;
     width: 9px;
-    background: black;
-    border-radius: 10px;
     top: 9px;
     right: 0.1px;
+    border-radius: 10px;
+    background: black;
   }
 }
 
 .sentence__word-list {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
   display: flex;
   flex-flow: row wrap;
   gap: 7px;
-  overflow: auto;
   max-height: 70px;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  overflow: auto;
 }
 
 .sentence__word-item {
