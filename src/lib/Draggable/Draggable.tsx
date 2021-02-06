@@ -1,14 +1,11 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { TRANSITION_TIME } from '../../settings/constants';
+import {
+  INITIAL_SHIFT_COORDS,
+  INITIAL_TRANSLATE_COORDS,
+  TRANSITION_TIME,
+} from '../../settings/constants';
 import { DraggablePropsType, GetBellowElement } from './Draggable.types';
 import './Draggable.scss';
-const INITIAL_SHIFT_COORDS = {
-  shiftX: 0,
-  shiftY: 0,
-  initialX: 0,
-  initialY: 0,
-};
-const INITIAL_TRANSLATE_COORDS = { x: 0, y: 0 };
 
 const Draggable = ({
   draggableElemInfo,
@@ -20,6 +17,7 @@ const Draggable = ({
   dragEndHandler,
 }: DraggablePropsType) => {
   const [isDragStart, setDragStart] = useState(false);
+  const [isBlockAnimaton, setBlockAnimation] = useState(false);
   const inDropZone = useRef(false);
   const zoneNumber = useRef(0); // 0 - начало, 1 - попал в drop, 2 - вышел из drop
   const currentZone = useRef(null);
@@ -70,7 +68,11 @@ const Draggable = ({
 
   const makeDraggableElement = (id: number) =>
     React.Children.map(children, (item) =>
-      React.cloneElement(item, { ...item.props, style, onMouseDown: dragStart })
+      React.cloneElement(item, {
+        ...item.props,
+        style,
+        onMouseDown: !isBlockAnimaton ? dragStart : null,
+      })
     );
 
   // handlerFunctions---------------------------------------------------
@@ -90,6 +92,7 @@ const Draggable = ({
         draggableElemInfo,
         status: inDropZone.current,
       });
+      draggableElem.ondragstart = () => false;
     },
     [dragStartHandler, draggableElemInfo]
   );
@@ -109,6 +112,7 @@ const Draggable = ({
         x: ev.clientX - shiftCoords.initialX - shiftCoords.shiftX,
         y: ev.clientY - shiftCoords.initialY - shiftCoords.shiftY,
       }));
+      bellowElem.ondragstart = () => false;
     },
     [
       dragMoveHandler,
@@ -129,25 +133,27 @@ const Draggable = ({
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
       dragEndHandler({ draggableElemInfo, currentZoneName: currentZone.current });
+      setBlockAnimation(true);
       console.log(currentZone);
     },
     [dragEndHandler, draggableElemInfo]
   );
 
   useEffect(() => {
-    if (isDragStart) {
+    if (isDragStart && !isBlockAnimaton) {
       window.addEventListener('mousemove', dragMove);
       window.addEventListener('mouseup', dragEnd);
     } else {
       window.removeEventListener('mousemove', dragMove);
       window.removeEventListener('mouseup', dragEnd);
+      setTimeout(() => setBlockAnimation(false), TRANSITION_TIME);
     }
 
     return () => {
       window.removeEventListener('mousemove', dragMove);
       window.removeEventListener('mouseup', dragEnd);
     };
-  }, [dragEnd, dragMove, isDragStart]);
+  }, [dragEnd, dragMove, isBlockAnimaton, isDragStart]);
 
   const style = useMemo(
     () => ({

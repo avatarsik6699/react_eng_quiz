@@ -38,6 +38,7 @@ const answerWords = [
   'sie',
   'sie',
 ];
+
 const Quiz = () => {
   const [isError, setError] = useState(false);
   return (
