@@ -1,15 +1,13 @@
 .drop-zone {
   display: flex;
   flex-flow: row wrap;
-  gap: 10px;
   max-width: 470px;
-  padding: 10px;
 
   &__wrapper {
     display: flex;
+    flex-flow: row wrap;
     flex-grow: 1;
     gap: 10px;
-    justify-content: space-between;
     border-top: 2px solid #cecccc;
     padding: 10px 0px;
     margin: 0;
@@ -20,4 +18,11 @@
     justify-content: flex-start;
     border-bottom: 2px solid #cecccc;
   }
+}
+
+.drop-zone[data-dropName='pendingZone'] {
+  gap: 10px;
+  padding: 0;
+  padding: 0;
+  margin: 0;
 }

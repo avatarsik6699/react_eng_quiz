@@ -5,9 +5,9 @@ import ErrorMessage from '../../atoms/ErrorMessage/ErrorMessage';
 import SentenceWord from '../../atoms/SentenceWord/SentenceWord';
 import Title from '../../atoms/Title/Title';
 import DropZone from '../../molecules/DropZone/DropZone';
-
-
 import Sentence from '../../molecules/Sentence/Sentence';
+
+import './Quiz.scss';
 const sentenceWords = [
   'She',
   'is',
@@ -53,10 +53,16 @@ const Quiz = () => {
           ))}
         </Sentence>
       </div>
-      <DropZone dropName="answersZone" answerWords={answerWords} />
-      <DropZone dropName="pendingZone" answerWords={answerWords} />
+      <div className="answers-zone-wrapper">
+        <DropZone dropName="answersZone" answerWords={answerWords} />
+      </div>
+      <div className="pending-zone-wrapper">
+        <DropZone dropName="pendingZone" answerWords={answerWords} />
+      </div>
       {isError && <ErrorMessage content="Something wrong!" />}
-      <Button onclickHandler={console.log} content="click" />
+      <div className="quiz__btn-wrapper">
+        <Button onclickHandler={console.log} content="click" />
+      </div>
     </div>
   );
 };

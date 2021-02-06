@@ -3,13 +3,8 @@ import Anchor from '../../atoms/Anchor/Anchor';
 import AnswerWord from '../../atoms/AnswerWord/AnswerWord';
 import { DropZonePropsType } from './DropZone.types';
 import './DropZone.scss';
+import Draggable from '../../lib/Draggable/Draggable';
 const DropZone = ({ dropName, answerWords }: DropZonePropsType) => {
-  const renderItem = (word: string) => (
-    <Anchor>
-      <AnswerWord content={word} />
-    </Anchor>
-  );
-
   const renderList = () => {
     const list = [];
     const lastItems = answerWords.reduce((acc: React.ReactNode[], item) => {
@@ -30,9 +25,19 @@ const DropZone = ({ dropName, answerWords }: DropZonePropsType) => {
   return (
     <Fragment>
       {dropName === 'answersZone' ? (
-        <div className="drop-zone">{renderList()}</div>
+        <div className="drop-zone" data-dropName={dropName}>
+          {renderList()}
+        </div>
       ) : (
-        <ul className="drop-zone">{answerWords.map((word) => renderItem(word))}</ul>
+        <ul className="drop-zone" data-dropName={dropName}>
+          {answerWords.map((word) => (
+            <Anchor>
+              <Draggable>
+                <AnswerWord content={word} />
+              </Draggable>
+            </Anchor>
+          ))}
+        </ul>
       )}
     </Fragment>
   );
