@@ -1,1 +1,3 @@
-export const ANIMATE_TIME = 500;
+const TRANSITION_TIME = 500;
+
+export { TRANSITION_TIME };

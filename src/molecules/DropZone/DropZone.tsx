@@ -1,45 +1,59 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import Anchor from '../../atoms/Anchor/Anchor';
 import AnswerWord from '../../atoms/AnswerWord/AnswerWord';
 import { DropZonePropsType } from './DropZone.types';
-import './DropZone.scss';
 import Draggable from '../../lib/Draggable/Draggable';
+import './DropZone.scss';
+
 const DropZone = ({ dropName, answerWords }: DropZonePropsType) => {
   const renderList = () => {
     const list = [];
-    const lastItems = answerWords.reduce((acc: React.ReactNode[], item) => {
+    let rowId = 0;
+    const lastItems = answerWords.reduce((acc: React.ReactNode[], item, index) => {
       if (acc.length === 6) {
-        list.push(<ul className="drop-zone__wrapper">{acc}</ul>);
-        return [<Anchor />];
+        list.push(
+          <ul key={rowId} className="drop-zone__wrapper">
+            {acc}
+          </ul>
+        );
+        rowId += 1;
+        return [<Anchor key={index} isHidden={true} />];
       }
 
-      return [...acc, <Anchor />];
+      return [...acc, <Anchor key={index} isHidden={true} />];
     }, []);
 
     if (lastItems.length >= 1) {
-      list.push(<ul className="drop-zone__wrapper">{lastItems}</ul>);
+      list.push(
+        <ul key={rowId + 1} className="drop-zone__wrapper">
+          {lastItems}
+        </ul>
+      );
     }
     return list;
   };
 
-  return (
-    <Fragment>
-      {dropName === 'answersZone' ? (
-        <div className="drop-zone" data-dropName={dropName}>
-          {renderList()}
-        </div>
-      ) : (
-        <ul className="drop-zone" data-dropName={dropName}>
-          {answerWords.map((word) => (
-            <Anchor>
-              <Draggable>
-                <AnswerWord content={word} />
-              </Draggable>
-            </Anchor>
-          ))}
-        </ul>
-      )}
-    </Fragment>
+  return dropName === 'answersZone' ? (
+    <div className="drop-zone" data-dropname={dropName}>
+      {renderList()}
+    </div>
+  ) : (
+    <ul className="drop-zone" data-dropname={dropName}>
+      {answerWords.map((word, id) => (
+        <Anchor key={id}>
+          <Draggable
+            draggableElemInfo={{ id }}
+            isTransitioned={false}
+            originCoords={{ x: 0, y: 0 }}
+            dragStartHandler={console.log}
+            dragMoveHandler={console.log}
+            dragEndHandler={console.log}
+          >
+            <AnswerWord content={word} key={id} />
+          </Draggable>
+        </Anchor>
+      ))}
+    </ul>
   );
 };
 

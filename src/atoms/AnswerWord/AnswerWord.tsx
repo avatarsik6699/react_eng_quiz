@@ -1,9 +1,9 @@
 import React from 'react';
 import './AnswerWord.scss';
 import { AnswerWordPropsType } from './AnswerWord.types';
-const AnswerWord = ({ content }: AnswerWordPropsType) => {
+const AnswerWord = ({ content, style, onMouseDown }: AnswerWordPropsType) => {
   return (
-    <span onMouseDown={(ev) => console.log(ev.target)} className="answer-word">
+    <span style={style ?? null} onMouseDown={onMouseDown ?? null} className="answer-word">
       {content}
     </span>
   );
