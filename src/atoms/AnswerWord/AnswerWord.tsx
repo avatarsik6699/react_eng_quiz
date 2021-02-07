@@ -9,4 +9,4 @@ const AnswerWord = ({ content, style, onMouseDown }: AnswerWordPropsType) => {
   );
 };
 
-export default AnswerWord;
+export default React.memo(AnswerWord);

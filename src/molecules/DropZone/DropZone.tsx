@@ -5,11 +5,20 @@ import { DropZonePropsType } from './DropZone.types';
 import Draggable from '../../lib/Draggable/Draggable';
 import './DropZone.scss';
 
-const DropZone = ({ dropName, answerWords }: DropZonePropsType) => {
+const DropZone = ({
+  dropName,
+  anchors,
+  words,
+  originCoords,
+  dragStartHandler,
+  dragMoveHandler,
+  dragEndHandler,
+  link,
+}: DropZonePropsType) => {
   const renderList = () => {
     const list = [];
     let rowId = 0;
-    const lastItems = answerWords.reduce((acc: React.ReactNode[], item, index) => {
+    const lastItems = anchors.reduce((acc: React.ReactNode[], item, index) => {
       if (acc.length === 6) {
         list.push(
           <ul key={rowId} className="drop-zone__wrapper">
@@ -17,10 +26,10 @@ const DropZone = ({ dropName, answerWords }: DropZonePropsType) => {
           </ul>
         );
         rowId += 1;
-        return [<Anchor key={index} isHidden={true} />];
+        return [<Anchor key={index} isHidden={item.isHidden} isPrepared={item.isPrepared} />];
       }
 
-      return [...acc, <Anchor key={index} isHidden={true} />];
+      return [...acc, <Anchor key={index} isHidden={item.isHidden} isPrepared={item.isPrepared} />];
     }, []);
 
     if (lastItems.length >= 1) {
@@ -34,23 +43,28 @@ const DropZone = ({ dropName, answerWords }: DropZonePropsType) => {
   };
 
   return dropName === 'answersZone' ? (
-    <div className="drop-zone" data-dropname={dropName}>
+    <div className="drop-zone" data-dropname={dropName} ref={link}>
       {renderList()}
     </div>
   ) : (
-    <ul className="drop-zone" data-dropname={dropName}>
-      {answerWords.map((word, id) => (
-        <Anchor key={id}>
-          <Draggable
-            draggableElemInfo={{ id }}
-            isTransitioned={false}
-            originCoords={{ x: 0, y: 0 }}
-            dragStartHandler={console.log}
-            dragMoveHandler={console.log}
-            dragEndHandler={console.log}
-          >
-            <AnswerWord content={word} key={id} />
-          </Draggable>
+    <ul className="drop-zone" data-dropname={dropName} ref={link}>
+      {anchors.map((anchor) => (
+        <Anchor key={anchor.anchorId}>
+          {words[anchor.anchorId] && (
+            <Draggable
+              draggableElemInfo={{ ...words[anchor.anchorId] }}
+              isTransitioned={false}
+              originCoords={originCoords[anchor.anchorId] ?? { x: 0, y: 0 }}
+              dragStartHandler={dragStartHandler}
+              dragMoveHandler={dragMoveHandler}
+              dragEndHandler={dragEndHandler}
+            >
+              <AnswerWord
+                content={words[anchor.anchorId].text}
+                key={words[anchor.anchorId].wordId}
+              />
+            </Draggable>
+          )}
         </Anchor>
       ))}
     </ul>

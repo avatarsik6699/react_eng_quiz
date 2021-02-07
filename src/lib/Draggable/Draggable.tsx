@@ -63,7 +63,7 @@ const Draggable = ({
       (document.elementFromPoint(x, y)?.closest('.drop-zone') as HTMLElement) ??
       (document.elementFromPoint(x, y) as HTMLElement);
     target.classList.remove('hidden');
-    return bellowElem;
+    return bellowElem ?? target;
   };
 
   const makeDraggableElement = (id: number) =>
@@ -89,8 +89,9 @@ const Draggable = ({
       }));
 
       dragStartHandler({
-        draggableElemInfo,
-        status: inDropZone.current,
+        from: draggableElemInfo.from,
+        dragId: draggableElemInfo.wordId,
+        currentZone: currentZone.current,
       });
       draggableElem.ondragstart = () => false;
     },
@@ -103,15 +104,23 @@ const Draggable = ({
       inDropZone.current = isDraggableElemInDropZone(bellowElem);
       if (currentZoneName) {
         currentZone.current = currentZoneName;
-        console.log(currentZone.current);
-        dragMoveHandler({ draggableElemInfo, currentZoneName });
+        dragMoveHandler({
+          from: draggableElemInfo.from,
+          dragId: draggableElemInfo.wordId,
+          currentZone: currentZone.current,
+        });
       }
-
+      // console.log(currentZone.current);
       setTranslateCoords((prevState) => ({
         ...prevState,
         x: ev.clientX - shiftCoords.initialX - shiftCoords.shiftX,
         y: ev.clientY - shiftCoords.initialY - shiftCoords.shiftY,
       }));
+      // dragMoveHandler({
+      //   from: draggableElemInfo.from,
+      //   dragId: draggableElemInfo.wordId,
+      //   currentZone: currentZone.current,
+      // });
       bellowElem.ondragstart = () => false;
     },
     [
@@ -132,9 +141,13 @@ const Draggable = ({
       zoneNumber.current = 0;
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
-      dragEndHandler({ draggableElemInfo, currentZoneName: currentZone.current });
       setBlockAnimation(true);
-      console.log(currentZone);
+
+      dragEndHandler({
+        from: draggableElemInfo.from,
+        dragId: draggableElemInfo.wordId,
+        currentZone: currentZone.current,
+      });
     },
     [dragEndHandler, draggableElemInfo]
   );
