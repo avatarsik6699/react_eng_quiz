@@ -20,7 +20,7 @@ const Draggable = ({
   const [isBlockAnimaton, setBlockAnimation] = useState(false);
   const inDropZone = useRef(false);
   const zoneNumber = useRef(0); // 0 - начало, 1 - попал в drop, 2 - вышел из drop
-  const currentZone = useRef(null);
+  const currentZone = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
 
   // координаты перемещения---------------------------------------------
   const [translateCoords, setTranslateCoords] = useState(INITIAL_TRANSLATE_COORDS);
@@ -29,17 +29,22 @@ const Draggable = ({
   // helpersFunctions---------------------------------------------------
   const setCurrentZone = useCallback(
     (dropZoneName) => {
-      if (!inDropZone.current && zoneNumber.current === 0) {
-        return null;
-      }
+      // if (!inDropZone.current && zoneNumber.current === 0) {
+      //   return null;
+      // }
 
       if (inDropZone.current && zoneNumber.current !== 1) {
         zoneNumber.current = 1;
         return dropZoneName;
       }
 
-      if (!inDropZone.current && zoneNumber.current !== 2) {
-        zoneNumber.current = 2;
+      if (!inDropZone.current && zoneNumber.current === 1) {
+        zoneNumber.current = 0;
+        return null;
+      }
+
+      if (!inDropZone.current && currentZone.current === 'answersZone') {
+        zoneNumber.current = 0;
         return 'out';
       }
     },
@@ -97,6 +102,7 @@ const Draggable = ({
     },
     [dragStartHandler, draggableElemInfo]
   );
+
   const dragMove = useCallback(
     (ev: MouseEvent) => {
       const bellowElem = getBellowElement(ev.target as HTMLElement, ev.clientX, ev.clientY);
@@ -110,17 +116,12 @@ const Draggable = ({
           currentZone: currentZone.current,
         });
       }
-      // console.log(currentZone.current);
+
       setTranslateCoords((prevState) => ({
         ...prevState,
         x: ev.clientX - shiftCoords.initialX - shiftCoords.shiftX,
         y: ev.clientY - shiftCoords.initialY - shiftCoords.shiftY,
       }));
-      // dragMoveHandler({
-      //   from: draggableElemInfo.from,
-      //   dragId: draggableElemInfo.wordId,
-      //   currentZone: currentZone.current,
-      // });
       bellowElem.ondragstart = () => false;
     },
     [

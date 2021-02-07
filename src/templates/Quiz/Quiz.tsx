@@ -1,14 +1,23 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
+import { Anchor } from '../../atoms/Anchor/Anchor.types';
 import Avatar from '../../atoms/Avatar/Avatar';
 import Button from '../../atoms/Button/Button';
 import ErrorMessage from '../../atoms/ErrorMessage/ErrorMessage';
 import SentenceWord from '../../atoms/SentenceWord/SentenceWord';
 import Title from '../../atoms/Title/Title';
+import {
+  getAnchorsCoords,
+  getElemsBeforeDraggableElem,
+  getPreparedAnchors,
+  getShiftedWords,
+} from '../../helpers/helpers';
 import DropZone from '../../molecules/DropZone/DropZone';
+import { Word } from '../../molecules/DropZone/DropZone.types';
 import Sentence from '../../molecules/Sentence/Sentence';
+import { TRANSITION_TIME } from '../../settings/constants';
 
 import './Quiz.scss';
+import { Coord } from './Quiz.types';
 const sentenceWords = [
   'She',
   'is',
@@ -44,7 +53,7 @@ const anchorsInPendingZone = [...Array(words.length).keys()].map((anchorId) => (
   isHidden: false,
   isPrepared: false,
 }));
-const anchorsInAnswersZone = [...Array(words.length).keys()].map((anchorId) => ({
+const anchorsInAnswersZone: Anchor[] = [...Array(words.length).keys()].map((anchorId) => ({
   anchorId,
   answerId: null,
   isHidden: true,
@@ -53,109 +62,133 @@ const anchorsInAnswersZone = [...Array(words.length).keys()].map((anchorId) => (
 
 const Quiz = () => {
   const [isError, setError] = useState(false);
-  const [anchorsApdated, setAnchorsApdated] = useState(false);
   const pendingRef = useRef<HTMLElement>();
   const answersRef = useRef<HTMLElement>();
+  const isTransitioned = useRef(false);
   // origin-coords-------------------------------------------------------
   const [pendingOriginCoords, setPendingOriginCoords] = useState({});
   const [answersOriginCoords, setAnswersOriginCoords] = useState({});
   // words---------------------------------------------------------------
-  const [wordsInPendingZone, setWordsInPendingZone] = useState(words);
-  const [wordsInAnswerZone, setWordsInAnswerZone] = useState([]);
+  const [wordsInPendingZone, setWordsInPendingZone] = useState<Word[]>(words);
+  const [wordsInAnswerZone, setWordsInAnswerZone] = useState<Word[]>([]);
   // anchors-------------------------------------------------------------
   const [answersAnchors, setAnswersAnchors] = useState(anchorsInAnswersZone);
   const [pendingAnchors, setPendingAnchors] = useState(anchorsInPendingZone);
-
   // handler functions-------------------------------------------
+
   const dragStartHandler = useCallback(
     ({ dragId, from }) => {
-      console.log(from, dragId);
+      isTransitioned.current = false;
       if (from === 'pending') {
-        // setPendingOriginCoords({
-        //   ...pendingOriginCoords,
-        //   [dragId]: {
-        //     x:
-        //     y:
-        //   }
-        // })
-        const getAnchorsCoords = () =>
-          Array.from((pendingRef.current?.childNodes as unknown) as HTMLLIElement[]).map(
-            (item) => ({
-              x: item.getBoundingClientRect().x,
-              y: item.getBoundingClientRect().y,
-            })
-          );
-        const getElemsBeforeDraggableElem = (includeCurrent = false) =>
-          wordsInPendingZone.filter((word) =>
-            includeCurrent ? word.wordId >= dragId : word.wordId > dragId
-          );
-        const coords = getAnchorsCoords();
-        const elemsBeforeDraggableElem = getElemsBeforeDraggableElem();
-        const newOriginCoords = elemsBeforeDraggableElem.reduce(
+        const anchorsCoods = getAnchorsCoords(
+          getPreparedAnchors(pendingRef.current as HTMLElement)
+        ) as Coord[];
+        const updatedPendingOriginCoords = getElemsBeforeDraggableElem(
+          wordsInPendingZone,
+          dragId
+        ).reduce(
           (origCoords, item) => ({
             ...origCoords,
             [item.wordId]: {
-              x: coords[item.wordId - 1].x - coords[item.wordId].x,
-              y: coords[item.wordId - 1].y - coords[item.wordId].y,
+              x: anchorsCoods[item.wordId - 1].x - anchorsCoods[item.wordId].x,
+              y: anchorsCoods[item.wordId - 1].y - anchorsCoods[item.wordId].y,
             },
           }),
           {}
         );
-        console.log(newOriginCoords);
         setPendingOriginCoords({
           ...pendingOriginCoords,
-          ...newOriginCoords,
+          ...updatedPendingOriginCoords,
         });
-      } else {
       }
     },
     [pendingOriginCoords, wordsInPendingZone]
   );
 
   const dragMoveHandler = useCallback(
-    ({ dragId, from, currentZone }) => {
-      if (from === 'pending') {
-        let itemFound = false;
-        if (currentZone === 'answersZone') {
-          const updatedAnswersAnchors = answersAnchors.map((anchor) => {
-            if (anchor.isHidden && !itemFound) {
-              console.log('if');
-              itemFound = true;
-              return { ...anchor, isPrepared: true, isHidden: false };
-            }
-            return anchor;
+    ({ from, currentZone, dragId }) => {
+      const getUpdatedAnswersAnchors = (action: 'show' | 'hide' = 'show') => {
+        const updatedAnswersAnchors = [...answersAnchors];
+        const targetAnchor = updatedAnswersAnchors.find((anchor) =>
+          action === 'show'
+            ? anchor.isHidden && anchor.answerId === null
+            : anchor.isPrepared && anchor.answerId === null
+        ) as Anchor;
+
+        if (targetAnchor) {
+          updatedAnswersAnchors.splice(targetAnchor.anchorId, 1, {
+            ...targetAnchor,
+            isHidden: action === 'hide',
+            isPrepared: action === 'show',
+            // answerId: action === 'show' ? targetAnchor.anchorId : null,
           });
-          // setAnchorsApdated(true);
-          setAnswersAnchors(updatedAnswersAnchors);
-        } else {
-          console.log('else');
-          const updatedAnswersAnchors = answersAnchors
-            .reverse()
-            .map((anchor) => {
-              if (anchor.isPrepared && !itemFound) {
-                itemFound = true;
-                return { ...anchor, isPrepared: false, isHidden: true };
-              }
-              return anchor;
-            })
-            .reverse();
-          setAnswersAnchors(updatedAnswersAnchors);
         }
+        return updatedAnswersAnchors;
+      };
+
+      if (from === 'pending') {
+        if (currentZone === 'answersZone') setAnswersAnchors(getUpdatedAnswersAnchors('show'));
+        else if (currentZone === 'out') setAnswersAnchors(getUpdatedAnswersAnchors('hide'));
       }
     },
     [answersAnchors]
   );
 
-  const dragEndHandler = useCallback(({ dragId, from, currentZone }) => {
-    console.log(dragId, from, currentZone);
-    if (from === 'pending') {
-      if (currentZone !== 'answersZone') {
-        setPendingOriginCoords({});
+  const dragEndHandler = useCallback(
+    ({ dragId, from, currentZone }) => {
+      if (from === 'pending') {
+        if (currentZone !== 'answersZone') {
+          setPendingOriginCoords({});
+        } else {
+          // Animation
+          const targetAnchorId = [...answersAnchors].reverse().find((anchor) => anchor.isPrepared)
+            ?.anchorId as number;
+          const coordsTargetAnchor = getAnchorsCoords(
+            getPreparedAnchors(answersRef.current as HTMLElement),
+            targetAnchorId
+          ) as Coord;
+          const coordsDragElem = getAnchorsCoords(
+            getPreparedAnchors(pendingRef.current as HTMLElement),
+            dragId
+          ) as Coord;
+          setPendingOriginCoords({
+            ...pendingOriginCoords,
+            [dragId]: {
+              x: coordsTargetAnchor.x - coordsDragElem.x,
+              y: coordsTargetAnchor.y - coordsDragElem.y,
+            },
+          });
+          setTimeout(() => {
+            isTransitioned.current = true;
+            const updatedAnswerAnchor = answersAnchors.find(
+              (anchor) => anchor.anchorId === targetAnchorId
+            ) as Anchor;
+            const updatedAnswersAnchors = [...answersAnchors];
+            updatedAnswersAnchors.splice(targetAnchorId, 1, {
+              ...updatedAnswerAnchor,
+              isPrepared: false,
+              answerId: targetAnchorId,
+            });
+
+            const draggableElem = wordsInPendingZone[dragId];
+            const updatedPendingWords = getShiftedWords([...wordsInPendingZone], dragId);
+            const updatedAnswersWords = [
+              ...wordsInAnswerZone,
+              { ...draggableElem, wordId: targetAnchorId, from: 'answers' },
+            ];
+
+            setWordsInAnswerZone([...updatedAnswersWords]);
+            setWordsInPendingZone([...updatedPendingWords]);
+            setAnswersAnchors([...updatedAnswersAnchors]);
+            setPendingOriginCoords({});
+          }, TRANSITION_TIME);
+        }
       } else {
-        console.log('pending in answer zone');
+        // from = 'answers'
       }
-    }
-  }, []);
+    },
+    [answersAnchors, pendingOriginCoords, wordsInAnswerZone, wordsInPendingZone]
+  );
 
   return (
     <div className="quiz">
@@ -180,6 +213,7 @@ const Quiz = () => {
           link={answersRef}
           words={wordsInAnswerZone}
           anchors={answersAnchors}
+          isTransitioned={isTransitioned.current}
         />
       </div>
       <div className="pending-zone-wrapper">
@@ -192,6 +226,7 @@ const Quiz = () => {
           link={pendingRef}
           words={wordsInPendingZone}
           anchors={pendingAnchors}
+          isTransitioned={isTransitioned.current}
         />
       </div>
       {isError && <ErrorMessage content="Something wrong!" />}

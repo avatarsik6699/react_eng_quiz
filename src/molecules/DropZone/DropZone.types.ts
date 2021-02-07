@@ -1,4 +1,4 @@
-export interface DropZonePropsType {
+interface DropZonePropsType {
   dropName: string;
   words: Word[];
   anchors: Anchor[];
@@ -7,6 +7,7 @@ export interface DropZonePropsType {
   dragEndHandler: any;
   originCoords: any;
   link: any;
+  isTransitioned: boolean;
 }
 
 type Word = {
@@ -21,3 +22,5 @@ interface Anchor {
   isHidden: boolean;
   isPrepared: boolean;
 }
+
+export type { Word, DropZonePropsType };

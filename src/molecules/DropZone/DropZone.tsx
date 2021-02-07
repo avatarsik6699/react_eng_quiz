@@ -14,11 +14,12 @@ const DropZone = ({
   dragMoveHandler,
   dragEndHandler,
   link,
+  isTransitioned,
 }: DropZonePropsType) => {
   const renderList = () => {
     const list = [];
     let rowId = 0;
-    const lastItems = anchors.reduce((acc: React.ReactNode[], item, index) => {
+    const lastItems = anchors.reduce((acc: React.ReactNode[], anchor, index) => {
       if (acc.length === 6) {
         list.push(
           <ul key={rowId} className="drop-zone__wrapper">
@@ -26,10 +27,47 @@ const DropZone = ({
           </ul>
         );
         rowId += 1;
-        return [<Anchor key={index} isHidden={item.isHidden} isPrepared={item.isPrepared} />];
+        return [
+          <Anchor key={index} isHidden={anchor.isHidden} isPrepared={anchor.isPrepared}>
+            {words[anchor.anchorId] && (
+              <Draggable
+                draggableElemInfo={{ ...words[anchor.anchorId] }}
+                isTransitioned={isTransitioned}
+                originCoords={originCoords[anchor.anchorId] ?? { x: 0, y: 0 }}
+                dragStartHandler={dragStartHandler}
+                dragMoveHandler={dragMoveHandler}
+                dragEndHandler={dragEndHandler}
+              >
+                <AnswerWord
+                  content={words[anchor.anchorId].text}
+                  key={words[anchor.anchorId].wordId}
+                />
+              </Draggable>
+            )}
+          </Anchor>,
+        ];
       }
 
-      return [...acc, <Anchor key={index} isHidden={item.isHidden} isPrepared={item.isPrepared} />];
+      return [
+        ...acc,
+        <Anchor key={index} isHidden={anchor.isHidden} isPrepared={anchor.isPrepared}>
+          {words[anchor.anchorId] && (
+            <Draggable
+              draggableElemInfo={{ ...words[anchor.anchorId] }}
+              isTransitioned={isTransitioned}
+              originCoords={originCoords[anchor.anchorId] ?? { x: 0, y: 0 }}
+              dragStartHandler={dragStartHandler}
+              dragMoveHandler={dragMoveHandler}
+              dragEndHandler={dragEndHandler}
+            >
+              <AnswerWord
+                content={words[anchor.anchorId].text}
+                key={words[anchor.anchorId].wordId}
+              />
+            </Draggable>
+          )}
+        </Anchor>,
+      ];
     }, []);
 
     if (lastItems.length >= 1) {
@@ -53,7 +91,7 @@ const DropZone = ({
           {words[anchor.anchorId] && (
             <Draggable
               draggableElemInfo={{ ...words[anchor.anchorId] }}
-              isTransitioned={false}
+              isTransitioned={isTransitioned}
               originCoords={originCoords[anchor.anchorId] ?? { x: 0, y: 0 }}
               dragStartHandler={dragStartHandler}
               dragMoveHandler={dragMoveHandler}
