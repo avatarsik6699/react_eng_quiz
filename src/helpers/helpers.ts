@@ -1,9 +1,12 @@
-import { Anchor } from '../atoms/Anchor/Anchor.types';
-import { Word } from '../molecules/DropZone/DropZone.types';
+import { AnchorElementType } from '../atoms/Anchor/Anchor.types';
+import { WordElementType } from '../atoms/AnswerWord/AnswerWord.types';
 import { Coord } from '../templates/Quiz/Quiz.types';
 
-const getElemsBeforeDraggableElem = (words: Word[], dragId: number, includeCurrent = false) =>
-  words.filter((word) => (includeCurrent ? word.wordId >= dragId : word.wordId > dragId));
+const getElemsBeforeDraggableElem = (
+  words: WordElementType[],
+  dragId: number,
+  includeCurrent = false
+) => words.filter((word) => (includeCurrent ? word.wordId >= dragId : word.wordId > dragId));
 
 const getPreparedAnchors = (anchorsRoot: HTMLElement): HTMLElement[] =>
   (Array.from(anchorsRoot.children) as HTMLElement[]).reduce(
@@ -23,7 +26,11 @@ const getAnchorsCoords = (anchors: HTMLElement[], exact: number | null = null) =
       }));
 type GetShiftWordsSettings = { withDraggableElem: boolean; directionShift: 'left' | 'right' };
 
-const getShiftedWords = (words: Word[], dragId: number, settings?: GetShiftWordsSettings) => {
+const getShiftedWords = (
+  words: WordElementType[],
+  dragId: number,
+  settings?: GetShiftWordsSettings
+) => {
   const { withDraggableElem, directionShift } = settings ?? {
     withDraggableElem: false,
     directionShift: 'left',
@@ -41,7 +48,7 @@ const getShiftedWords = (words: Word[], dragId: number, settings?: GetShiftWords
 
 const calcOriginCoords = (
   root: HTMLElement, // area из которой собираем
-  words: Word[], // целевые слова
+  words: WordElementType[], // целевые слова
   dragId: number, // точка отсчета
   additionalSettings?: { includeCurrent: boolean; shiftDirection: 'right' | 'left' }
 ) => {
@@ -66,12 +73,12 @@ const calcOriginCoords = (
   );
 };
 
-const getLastActiveAnchor = (anchors: Anchor[]) =>
-  anchors.reverse().find((word) => word.answerId !== null) as Anchor;
+const getLastActiveAnchor = (anchors: AnchorElementType[]) =>
+  anchors.reverse().find((word) => word.answerId !== null) as AnchorElementType;
 
 const getUpdatedAnswersAnchors = (
   action: 'show' | 'hide' = 'show',
-  anchors: Anchor[],
+  anchors: AnchorElementType[],
   settings?: { target: 'last' | 'prepared' | 'hidden' }
 ) => {
   const { target } = settings ?? { target: 'prepared' }; // default settings
@@ -97,14 +104,11 @@ const getUpdatedAnswersAnchors = (
   return updatedAnswersAnchors;
 };
 
-// const getPreparedAnchor = (anchors: Anchor[]) =>
-//   anchors.reverse().find((anchor) => anchor.isPrepared);
 export {
   getElemsBeforeDraggableElem,
   getPreparedAnchors,
   getAnchorsCoords,
   getShiftedWords,
   calcOriginCoords,
-  // getPreparedAnchor,
   getUpdatedAnswersAnchors,
 };

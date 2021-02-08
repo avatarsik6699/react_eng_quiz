@@ -1,25 +1,24 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Anchor } from '../../atoms/Anchor/Anchor.types';
+import './Quiz.scss';
+import React, { useCallback, useRef, useState } from 'react';
 import Avatar from '../../atoms/Avatar/Avatar';
 import Button from '../../atoms/Button/Button';
 import ErrorMessage from '../../atoms/ErrorMessage/ErrorMessage';
 import SentenceWord from '../../atoms/SentenceWord/SentenceWord';
 import Title from '../../atoms/Title/Title';
+import DropZone from '../../molecules/DropZone/DropZone';
+import Sentence from '../../molecules/Sentence/Sentence';
+import { TRANSITION_TIME } from '../../settings/constants';
+import { Coord } from './Quiz.types';
 import {
   calcOriginCoords,
   getAnchorsCoords,
-  getElemsBeforeDraggableElem,
   getPreparedAnchors,
   getShiftedWords,
   getUpdatedAnswersAnchors,
 } from '../../helpers/helpers';
-import DropZone from '../../molecules/DropZone/DropZone';
-import { Word } from '../../molecules/DropZone/DropZone.types';
-import Sentence from '../../molecules/Sentence/Sentence';
-import { TRANSITION_TIME } from '../../settings/constants';
+import { AnchorElementType } from '../../atoms/Anchor/Anchor.types';
+import { WordElementType } from '../../atoms/AnswerWord/AnswerWord.types';
 
-import './Quiz.scss';
-import { Coord } from './Quiz.types';
 const sentenceWords = [
   'She',
   'is',
@@ -50,19 +49,24 @@ const words = [
   'sie',
   'sie',
 ].map((text, index) => ({ text, wordId: index, originId: index, from: 'pending' }));
-const anchorsInPendingZone = [...Array(words.length).keys()].map((anchorId) => ({
-  anchorId,
-  isHidden: false,
-  isPrepared: false,
-  isdisappear: false,
-}));
-const anchorsInAnswersZone: Anchor[] = [...Array(words.length).keys()].map((anchorId) => ({
-  anchorId,
-  answerId: null,
-  isHidden: true,
-  isPrepared: false,
-  isdisappear: false,
-}));
+const anchorsInPendingZone: AnchorElementType[] = [...Array(words.length).keys()].map(
+  (anchorId) => ({
+    anchorId,
+    isHidden: false,
+    answerId: null,
+    isPrepared: false,
+    isdisappear: false,
+  })
+);
+const anchorsInAnswersZone: AnchorElementType[] = [...Array(words.length).keys()].map(
+  (anchorId) => ({
+    anchorId,
+    answerId: null,
+    isHidden: true,
+    isPrepared: false,
+    isdisappear: false,
+  })
+);
 
 const Quiz = () => {
   const [isError, setError] = useState(false);
@@ -74,8 +78,8 @@ const Quiz = () => {
   const [pendingOriginCoords, setPendingOriginCoords] = useState({});
   const [answersOriginCoords, setAnswersOriginCoords] = useState({});
   // words---------------------------------------------------------------
-  const [wordsInPendingZone, setWordsInPendingZone] = useState<Word[]>(words);
-  const [wordsInAnswerZone, setWordsInAnswerZone] = useState<Word[]>([]);
+  const [wordsInPendingZone, setWordsInPendingZone] = useState<WordElementType[]>(words);
+  const [wordsInAnswerZone, setWordsInAnswerZone] = useState<WordElementType[]>([]);
   // anchors-------------------------------------------------------------
   const [answersAnchors, setAnswersAnchors] = useState(anchorsInAnswersZone);
   const [pendingAnchors, setPendingAnchors] = useState(anchorsInPendingZone);

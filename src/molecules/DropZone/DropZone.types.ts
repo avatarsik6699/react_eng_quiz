@@ -1,28 +1,16 @@
+import { AnchorElementType } from '../../atoms/Anchor/Anchor.types';
+import { WordElementType } from '../../atoms/AnswerWord/AnswerWord.types';
+
 interface DropZonePropsType {
   dropName: string;
-  words: Word[];
-  anchors: Anchor[];
+  words: WordElementType[];
+  anchors: AnchorElementType[];
   dragStartHandler: any;
   dragMoveHandler: any;
   dragEndHandler: any;
-  originCoords: any;
+  originCoords: { [key: string]: { x: number; y: number } };
   link: any;
   isTransitioned: boolean;
 }
 
-type Word = {
-  text: string;
-  wordId: number;
-  originId: number;
-  from: string;
-};
-
-interface Anchor {
-  isdisappear: boolean;
-  anchorId: number;
-  answerId?: number | null;
-  isHidden: boolean;
-  isPrepared: boolean;
-}
-
-export type { Word, DropZonePropsType };
+export type { DropZonePropsType };

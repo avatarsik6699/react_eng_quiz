@@ -5,7 +5,7 @@ interface AnchorPropsType {
   isdisappear: boolean;
 }
 
-type Anchor = {
+type AnchorElementType = {
   anchorId: number;
   answerId: null | number;
   isHidden: boolean;
@@ -13,4 +13,4 @@ type Anchor = {
   isdisappear: boolean;
 };
 
-export type { Anchor, AnchorPropsType };
+export type { AnchorPropsType, AnchorElementType };

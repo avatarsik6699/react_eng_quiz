@@ -104,7 +104,7 @@ const Draggable = ({
       if (currentAreaName !== debounce.current) {
         debounce.current = currentAreaName;
         currentArea.current = currentAreaName;
-        console.log(currentArea.current, 'set');
+
         dragMoveHandler({
           from: draggableElemInfo.from,
           dragId: draggableElemInfo.wordId,
@@ -134,7 +134,7 @@ const Draggable = ({
   const dragEnd = useCallback(
     (ev: MouseEvent) => {
       (ev.target as HTMLElement).classList.remove('draggable');
-      console.log(currentArea.current, 'end');
+
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
       setBlockAnimation(true);
