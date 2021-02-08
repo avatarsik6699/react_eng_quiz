@@ -1,9 +1,13 @@
 import React from 'react';
 import './Anchor.scss';
 import { AnchorPropsType } from './Anchor.types';
-const Anchor = ({ children, isHidden, isPrepared }: AnchorPropsType) => {
+const Anchor = ({ children, isHidden, isPrepared, isdisappear }: AnchorPropsType) => {
   return (
-    <li className={`anchor ${isHidden ? 'hidden' : ''} ${isPrepared ? 'prepared' : ''}`}>
+    <li
+      className={`anchor ${isHidden ? 'hidden' : ''} ${isPrepared ? 'prepared' : ''} ${
+        isdisappear ? 'disappear' : ''
+      }`}
+    >
       {children ?? null}
     </li>
   );

@@ -28,7 +28,12 @@ const DropZone = ({
         );
         rowId += 1;
         return [
-          <Anchor key={index} isHidden={anchor.isHidden} isPrepared={anchor.isPrepared}>
+          <Anchor
+            key={index}
+            isHidden={anchor.isHidden}
+            isPrepared={anchor.isPrepared}
+            isdisappear={anchor.isdisappear}
+          >
             {words[anchor.anchorId] && (
               <Draggable
                 draggableElemInfo={{ ...words[anchor.anchorId] }}
@@ -50,7 +55,12 @@ const DropZone = ({
 
       return [
         ...acc,
-        <Anchor key={index} isHidden={anchor.isHidden} isPrepared={anchor.isPrepared}>
+        <Anchor
+          key={index}
+          isHidden={anchor.isHidden}
+          isPrepared={anchor.isPrepared}
+          isdisappear={anchor.isdisappear}
+        >
           {words[anchor.anchorId] && (
             <Draggable
               draggableElemInfo={{ ...words[anchor.anchorId] }}
@@ -87,7 +97,7 @@ const DropZone = ({
   ) : (
     <ul className="drop-zone" data-dropname={dropName} ref={link}>
       {anchors.map((anchor) => (
-        <Anchor key={anchor.anchorId}>
+        <Anchor key={anchor.anchorId} isdisappear={anchor.isdisappear}>
           {words[anchor.anchorId] && (
             <Draggable
               draggableElemInfo={{ ...words[anchor.anchorId] }}

@@ -18,38 +18,28 @@ const Draggable = ({
 }: DraggablePropsType) => {
   const [isDragStart, setDragStart] = useState(false);
   const [isBlockAnimaton, setBlockAnimation] = useState(false);
-  const inDropZone = useRef(false);
-  const zoneNumber = useRef(0); // 0 - начало, 1 - попал в drop, 2 - вышел из drop
-  const currentZone = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
-
+  const inDropArea = useRef(false);
+  const currentArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
+  const prevDropArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
+  const debounce = useRef<string>();
   // координаты перемещения---------------------------------------------
   const [translateCoords, setTranslateCoords] = useState(INITIAL_TRANSLATE_COORDS);
   const [shiftCoords, setShiftCoords] = useState(INITIAL_SHIFT_COORDS);
 
   // helpersFunctions---------------------------------------------------
-  const setCurrentZone = useCallback(
-    (dropZoneName) => {
-      // if (!inDropZone.current && zoneNumber.current === 0) {
-      //   return null;
-      // }
-
-      if (inDropZone.current && zoneNumber.current !== 1) {
-        zoneNumber.current = 1;
+  const setCurrentZone = useCallback((dropZoneName: string | null) => {
+    const prevDA = prevDropArea.current.match(/(\w+)Zone/)![1];
+    if (inDropArea.current && dropZoneName) {
+      if (prevDA === dropZoneName) {
+        return dropZoneName;
+      } else {
+        prevDropArea.current = dropZoneName;
         return dropZoneName;
       }
-
-      if (!inDropZone.current && zoneNumber.current === 1) {
-        zoneNumber.current = 0;
-        return null;
-      }
-
-      if (!inDropZone.current && currentZone.current === 'answersZone') {
-        zoneNumber.current = 0;
-        return 'out';
-      }
-    },
-    [inDropZone]
-  );
+    } else {
+      return `out-${prevDA}`;
+    }
+  }, []);
 
   const isDraggableElemInDropZone = useCallback(
     (bellowElem: null | HTMLElement) =>
@@ -68,10 +58,11 @@ const Draggable = ({
       (document.elementFromPoint(x, y)?.closest('.drop-zone') as HTMLElement) ??
       (document.elementFromPoint(x, y) as HTMLElement);
     target.classList.remove('hidden');
-    return bellowElem ?? target;
+
+    return bellowElem;
   };
 
-  const makeDraggableElement = (id: number) =>
+  const makeDraggableElement = () =>
     React.Children.map(children, (item) =>
       React.cloneElement(item, {
         ...item.props,
@@ -84,6 +75,7 @@ const Draggable = ({
   const dragStart = useCallback(
     (ev: React.MouseEvent<HTMLSpanElement>) => {
       const draggableElem = ev.target as HTMLSpanElement;
+      draggableElem.classList.add('draggable');
       setDragStart(true);
       setShiftCoords((prevState) => ({
         ...prevState,
@@ -96,7 +88,7 @@ const Draggable = ({
       dragStartHandler({
         from: draggableElemInfo.from,
         dragId: draggableElemInfo.wordId,
-        currentZone: currentZone.current,
+        currentZone: currentArea.current,
       });
       draggableElem.ondragstart = () => false;
     },
@@ -106,14 +98,17 @@ const Draggable = ({
   const dragMove = useCallback(
     (ev: MouseEvent) => {
       const bellowElem = getBellowElement(ev.target as HTMLElement, ev.clientX, ev.clientY);
-      const currentZoneName = setCurrentZone(bellowElem.dataset.dropname); // null/out/drop(answersZone, pendingZone)
-      inDropZone.current = isDraggableElemInDropZone(bellowElem);
-      if (currentZoneName) {
-        currentZone.current = currentZoneName;
+      inDropArea.current = isDraggableElemInDropZone(bellowElem);
+      const currentAreaName = setCurrentZone(bellowElem.dataset.dropname ?? null);
+
+      if (currentAreaName !== debounce.current) {
+        debounce.current = currentAreaName;
+        currentArea.current = currentAreaName;
+        console.log(currentArea.current, 'set');
         dragMoveHandler({
           from: draggableElemInfo.from,
           dragId: draggableElemInfo.wordId,
-          currentZone: currentZone.current,
+          currentZone: currentArea.current,
         });
       }
 
@@ -138,16 +133,17 @@ const Draggable = ({
 
   const dragEnd = useCallback(
     (ev: MouseEvent) => {
-      inDropZone.current = inDropZone.current ? true : false;
-      zoneNumber.current = 0;
+      (ev.target as HTMLElement).classList.remove('draggable');
+      console.log(currentArea.current, 'end');
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
       setBlockAnimation(true);
 
       dragEndHandler({
         from: draggableElemInfo.from,
+        originId: draggableElemInfo.originId,
         dragId: draggableElemInfo.wordId,
-        currentZone: currentZone.current,
+        currentZone: currentArea.current,
       });
     },
     [dragEndHandler, draggableElemInfo]
@@ -171,6 +167,7 @@ const Draggable = ({
 
   const style = useMemo(
     () => ({
+      willChange: 'transform',
       transform: isDragStart
         ? `translate(
       ${translateCoords.x + originCoords.x}px, 
@@ -188,7 +185,7 @@ const Draggable = ({
     ]
   );
 
-  return <Fragment>{makeDraggableElement(draggableElemInfo.id)}</Fragment>;
+  return <Fragment>{makeDraggableElement()}</Fragment>;
 };
 
 export default React.memo(Draggable);

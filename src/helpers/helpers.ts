@@ -1,4 +1,6 @@
+import { Anchor } from '../atoms/Anchor/Anchor.types';
 import { Word } from '../molecules/DropZone/DropZone.types';
+import { Coord } from '../templates/Quiz/Quiz.types';
 
 const getElemsBeforeDraggableElem = (words: Word[], dragId: number, includeCurrent = false) =>
   words.filter((word) => (includeCurrent ? word.wordId >= dragId : word.wordId > dragId));
@@ -19,16 +21,90 @@ const getAnchorsCoords = (anchors: HTMLElement[], exact: number | null = null) =
         x: item.getBoundingClientRect().x,
         y: item.getBoundingClientRect().y,
       }));
+type GetShiftWordsSettings = { withDraggableElem: boolean; directionShift: 'left' | 'right' };
 
-const getShiftedWords = (words: Word[], dragId: number) => {
-  const wordsWithoutDraggableElem = words.filter((word) => word.wordId !== dragId);
-  const elemsIdBeforeDraggableElem = getElemsBeforeDraggableElem(words, dragId).map(
-    (word) => word.wordId
-  );
-  console.log(elemsIdBeforeDraggableElem);
-  return wordsWithoutDraggableElem.map((word) =>
-    elemsIdBeforeDraggableElem.includes(word.wordId) ? { ...word, wordId: word.wordId - 1 } : word
+const getShiftedWords = (words: Word[], dragId: number, settings?: GetShiftWordsSettings) => {
+  const { withDraggableElem, directionShift } = settings ?? {
+    withDraggableElem: false,
+    directionShift: 'left',
+  }; // default settings
+
+  const correctWords = withDraggableElem ? words : words.filter((word) => word.wordId !== dragId);
+  return correctWords.map((word) =>
+    getElemsBeforeDraggableElem(words, dragId, withDraggableElem)
+      .map((word) => word.wordId)
+      .includes(word.wordId)
+      ? { ...word, wordId: directionShift === 'right' ? word.wordId + 1 : word.wordId - 1 }
+      : word
   );
 };
 
-export { getElemsBeforeDraggableElem, getPreparedAnchors, getAnchorsCoords, getShiftedWords };
+const calcOriginCoords = (
+  root: HTMLElement, // area из которой собираем
+  words: Word[], // целевые слова
+  dragId: number, // точка отсчета
+  additionalSettings?: { includeCurrent: boolean; shiftDirection: 'right' | 'left' }
+) => {
+  const { includeCurrent, shiftDirection } = additionalSettings ?? {
+    includeCurrent: false,
+    shiftDirection: 'left',
+  };
+  const anchorsCoords = getAnchorsCoords(getPreparedAnchors(root)) as Coord[];
+  return getElemsBeforeDraggableElem(words, dragId, includeCurrent).reduce(
+    (originCoords, word) => ({
+      ...originCoords,
+      [word.wordId]: {
+        x:
+          anchorsCoords[shiftDirection === 'right' ? word.wordId + 1 : word.wordId - 1].x -
+          anchorsCoords[word.wordId].x,
+        y:
+          anchorsCoords[shiftDirection === 'right' ? word.wordId + 1 : word.wordId - 1].y -
+          anchorsCoords[word.wordId].y,
+      },
+    }),
+    {}
+  );
+};
+
+const getLastActiveAnchor = (anchors: Anchor[]) =>
+  anchors.reverse().find((word) => word.answerId !== null) as Anchor;
+
+const getUpdatedAnswersAnchors = (
+  action: 'show' | 'hide' = 'show',
+  anchors: Anchor[],
+  settings?: { target: 'last' | 'prepared' | 'hidden' }
+) => {
+  const { target } = settings ?? { target: 'prepared' }; // default settings
+  const updatedAnswersAnchors = [...anchors];
+  const targetAnchor =
+    target === 'last'
+      ? getLastActiveAnchor([...updatedAnswersAnchors])
+      : updatedAnswersAnchors.find((anchor) =>
+          target === 'prepared'
+            ? anchor.isPrepared && anchor.answerId === null
+            : anchor.isHidden && anchor.answerId === null
+        );
+  console.log(targetAnchor);
+  if (targetAnchor) {
+    updatedAnswersAnchors.splice(targetAnchor.anchorId, 1, {
+      ...targetAnchor,
+      isHidden: action === 'hide',
+      isPrepared: action === 'show',
+      answerId: null,
+    });
+  }
+
+  return updatedAnswersAnchors;
+};
+
+// const getPreparedAnchor = (anchors: Anchor[]) =>
+//   anchors.reverse().find((anchor) => anchor.isPrepared);
+export {
+  getElemsBeforeDraggableElem,
+  getPreparedAnchors,
+  getAnchorsCoords,
+  getShiftedWords,
+  calcOriginCoords,
+  // getPreparedAnchor,
+  getUpdatedAnswersAnchors,
+};

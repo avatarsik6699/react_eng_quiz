@@ -14,9 +14,11 @@ type Word = {
   text: string;
   wordId: number;
   originId: number;
+  from: string;
 };
 
 interface Anchor {
+  isdisappear: boolean;
   anchorId: number;
   answerId?: number | null;
   isHidden: boolean;
