@@ -43,11 +43,11 @@ const words = [
   'sie',
   'isst',
   'einen',
-  'sie',
-  'sie',
-  'sie',
-  'sie',
-  'sie',
+  'sie1',
+  'sie2',
+  'sie3',
+  'sie4',
+  'sie5',
 ].map((text, index) => ({ text, wordId: index, originId: index, from: 'pending' }));
 const anchorsInPendingZone: AnchorElementType[] = [...Array(words.length).keys()].map(
   (anchorId) => ({
@@ -70,6 +70,7 @@ const anchorsInAnswersZone: AnchorElementType[] = [...Array(words.length).keys()
 
 const Quiz = () => {
   const [isError, setError] = useState(false);
+  const [isBlockAnimaton, setBlockAnimation] = useState(false);
   const pendingRef = useRef<HTMLElement>();
   const answersRef = useRef<HTMLElement>();
   const isTransitioned = useRef(false);
@@ -85,18 +86,30 @@ const Quiz = () => {
   const [pendingAnchors, setPendingAnchors] = useState(anchorsInPendingZone);
   // handler functions-------------------------------------------
 
+  const clearBlockAnimation = () => setTimeout(() => setBlockAnimation(false), TRANSITION_TIME);
+
   const dragStartHandler = useCallback(
     ({ dragId, from }) => {
       isTransitioned.current = false;
       if (from === 'pending') {
         setPendingOriginCoords({
           ...pendingOriginCoords,
-          ...calcOriginCoords(pendingRef.current as HTMLElement, wordsInPendingZone, dragId),
+          ...calcOriginCoords(
+            pendingRef.current as HTMLElement,
+            'pending',
+            wordsInPendingZone,
+            dragId
+          ),
         });
       } else {
         setAnswersOriginCoords({
           ...answersOriginCoords,
-          ...calcOriginCoords(answersRef.current as HTMLElement, wordsInAnswerZone, dragId),
+          ...calcOriginCoords(
+            answersRef.current as HTMLElement,
+            'answers',
+            wordsInAnswerZone,
+            dragId
+          ),
         });
       }
     },
@@ -118,7 +131,8 @@ const Quiz = () => {
   );
 
   const dragEndHandler = useCallback(
-    ({ dragId, from, currentZone, originId }) => {
+    ({ dragId, from, currentZone, originId, anchorId }) => {
+      setBlockAnimation(true);
       if (from === 'pending') {
         if (currentZone === 'answersZone') {
           // ANIMATION------------------------------------
@@ -151,7 +165,7 @@ const Quiz = () => {
             ]);
 
             // SHIFT WORDS IN PENDING AREA-----------------------------------------
-            setWordsInPendingZone(getShiftedWords([...wordsInPendingZone], dragId));
+            setWordsInPendingZone(getShiftedWords([...wordsInPendingZone], dragId, 'pending'));
 
             // SET ACTIVE PREPARED ANCHOR IN ANSWER AREA---------------------------
             setAnswersAnchors(
@@ -163,9 +177,14 @@ const Quiz = () => {
             );
 
             setPendingOriginCoords({}); // SET INITIAL ORIGIN COORDS {x: 0, y: 0}
+            setBlockAnimation(false);
           }, TRANSITION_TIME);
+        } else if (currentZone === 'pendingAnchor') {
+          setPendingOriginCoords({}); // SET INITIAL ORIGIN COORDS {x: 0, y: 0}
+          clearBlockAnimation();
         } else {
           setPendingOriginCoords({}); // SET INITIAL ORIGIN COORDS {x: 0, y: 0}
+          clearBlockAnimation();
         }
       } else {
         if (currentZone === 'pendingZone') {
@@ -187,10 +206,16 @@ const Quiz = () => {
           });
           setPendingOriginCoords({
             ...pendingOriginCoords,
-            ...calcOriginCoords(pendingRef.current as HTMLElement, wordsInPendingZone, originId, {
-              includeCurrent: true,
-              shiftDirection: 'right',
-            }),
+            ...calcOriginCoords(
+              pendingRef.current as HTMLElement,
+              'pending',
+              wordsInPendingZone,
+              originId,
+              {
+                includeCurrent: true,
+                shiftDirection: 'right',
+              }
+            ),
           });
 
           setTimeout(() => {
@@ -198,10 +223,15 @@ const Quiz = () => {
             const draggableElem = wordsInAnswerZone[dragId];
 
             // SHIFT PENDING WORDS---------------------------------------------------------
-            const shiftedPendingWords = getShiftedWords([...wordsInPendingZone], originId, {
-              withDraggableElem: true,
-              directionShift: 'right',
-            });
+            const shiftedPendingWords = getShiftedWords(
+              [...wordsInPendingZone],
+              originId,
+              'pending',
+              {
+                withDraggableElem: true,
+                directionShift: 'right',
+              }
+            );
             shiftedPendingWords.splice(originId, 0, {
               ...draggableElem,
               from: 'pending',
@@ -210,7 +240,7 @@ const Quiz = () => {
             setWordsInPendingZone([...shiftedPendingWords]);
 
             // SHIFT ANSWERS WORDS------------------------------------------------------
-            const shiftedAnswersWords = getShiftedWords([...wordsInAnswerZone], dragId, {
+            const shiftedAnswersWords = getShiftedWords([...wordsInAnswerZone], dragId, 'answers', {
               withDraggableElem: false,
               directionShift: 'left',
             });
@@ -222,9 +252,106 @@ const Quiz = () => {
             // SET INITIAL ORIGIN COORDS {x: 0, y: 0}-----------------------
             setAnswersOriginCoords({});
             setPendingOriginCoords({});
+            setBlockAnimation(false);
           }, TRANSITION_TIME);
+        } else if (currentZone === 'pendingAnchor') {
+          // БАГ - ОТСУТСТВУЮТ ЗАЗОРЫ -> ЭЛЕМЕНТ СМЕЩАЕТСЯ
+          // TRANSLATE TO THE WRONG ANCHOR-------------------------
+          const targetAnchorCoords = getAnchorsCoords(
+            getPreparedAnchors(pendingRef.current as HTMLLIElement),
+            anchorId
+          ) as Coord;
+          const draggableElemCoords = getAnchorsCoords(
+            getPreparedAnchors(answersRef.current as HTMLLIElement),
+            dragId
+          ) as Coord;
+
+          setAnswersOriginCoords({
+            ...answersOriginCoords,
+            [dragId]: {
+              x: targetAnchorCoords.x - draggableElemCoords.x,
+              y: targetAnchorCoords.y - draggableElemCoords.y,
+            },
+          });
+
+          // TRANSLATE TO ORIGIN ANCHOR--------------------------------
+          setTimeout(() => {
+            // VISUAL SHIFT OF THE WORDS IN PENDING AREA
+            setPendingOriginCoords({
+              ...pendingOriginCoords,
+              ...calcOriginCoords(
+                pendingRef.current as HTMLElement,
+                'pending',
+                wordsInPendingZone,
+                originId,
+                {
+                  includeCurrent: true,
+                  shiftDirection: 'right',
+                }
+              ),
+            });
+
+            // VISUAL TRANSLATE OF THE DRAGGABLE ELEM TO ORIGIN ANCHOR
+            const originAnchorCoords = getAnchorsCoords(
+              getPreparedAnchors(pendingRef.current as HTMLLIElement),
+              originId
+            ) as Coord;
+
+            setAnswersOriginCoords({
+              ...answersOriginCoords,
+              [dragId]: {
+                x: originAnchorCoords.x - draggableElemCoords.x,
+                y: originAnchorCoords.y - draggableElemCoords.y,
+              },
+            });
+
+            // UPDATE BOTH AREA
+            setTimeout(() => {
+              isTransitioned.current = true;
+              const draggableElem = wordsInAnswerZone[dragId];
+              // SHIFT PENDING WORDS---------------------------------------------------------
+              const shiftedPendingWords = getShiftedWords(
+                [...wordsInPendingZone],
+                originId,
+                'pending',
+                {
+                  withDraggableElem: true,
+                  directionShift: 'right',
+                }
+              );
+
+              shiftedPendingWords.splice(originId, 0, {
+                ...draggableElem,
+                from: 'pending',
+                wordId: originId,
+              });
+
+              // SHIFT ANSWERS WORDS------------------------------------------------------
+              const shiftedAnswersWords = getShiftedWords(
+                [...wordsInAnswerZone],
+                dragId,
+                'answers',
+                {
+                  withDraggableElem: false,
+                  directionShift: 'left',
+                }
+              );
+              setWordsInAnswerZone([...shiftedAnswersWords]);
+
+              // HIDE LAST ANCHOR IN ANSWER AREA--------------------------------------------
+              setAnswersAnchors(
+                getUpdatedAnswersAnchors('hide', answersAnchors, { target: 'last' })
+              );
+              setWordsInPendingZone([...shiftedPendingWords]);
+              // SET INITIAL ORIGIN COORDS {x: 0, y: 0}-----------------------
+              setAnswersOriginCoords({});
+              setPendingOriginCoords({});
+              setBlockAnimation(false);
+            }, TRANSITION_TIME);
+          }, TRANSITION_TIME + 500);
         } else {
           setAnswersOriginCoords({}); // SET INITIAL ORIGIN COORDS {x: 0, y: 0}
+          clearBlockAnimation();
         }
       }
     },
@@ -236,7 +363,7 @@ const Quiz = () => {
       wordsInPendingZone,
     ]
   );
-
+  console.log(wordsInAnswerZone, wordsInPendingZone);
   return (
     <div className="quiz">
       <Title content="Translate this sentence" />
@@ -261,6 +388,7 @@ const Quiz = () => {
           words={wordsInAnswerZone}
           anchors={answersAnchors}
           isTransitioned={isTransitioned.current}
+          isBlockAnimaton={isBlockAnimaton}
         />
       </div>
       <div className="pending-zone-wrapper">
@@ -274,6 +402,7 @@ const Quiz = () => {
           words={wordsInPendingZone}
           anchors={pendingAnchors}
           isTransitioned={isTransitioned.current}
+          isBlockAnimaton={isBlockAnimaton}
         />
       </div>
       {isError && <ErrorMessage content="Something wrong!" />}

@@ -2,6 +2,7 @@ interface DraggablePropsType {
   children: React.ReactElement;
   draggableElemInfo: any;
   isTransitioned: boolean;
+  isBlockAnimaton: boolean;
   originCoords: any;
   dragStartHandler: any;
   dragMoveHandler: any;

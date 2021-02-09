@@ -11,6 +11,7 @@ interface DropZonePropsType {
   originCoords: { [key: string]: { x: number; y: number } };
   link: any;
   isTransitioned: boolean;
+  isBlockAnimaton: boolean;
 }
 
 export type { DropZonePropsType };

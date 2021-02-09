@@ -5,6 +5,7 @@ import Draggable from '../../lib/Draggable/Draggable';
 import './DropZone.scss';
 import Anchor from '../../atoms/Anchor/Anchor';
 import { AnchorElementType } from '../../atoms/Anchor/Anchor.types';
+import { WordElementType } from '../../atoms/AnswerWord/AnswerWord.types';
 
 const DropZone = ({
   dropName,
@@ -16,24 +17,37 @@ const DropZone = ({
   dragEndHandler,
   link,
   isTransitioned,
+  isBlockAnimaton,
 }: DropZonePropsType) => {
-  const createWord = (data: AnchorElementType) => (
+  const preparedWords: { [key: string]: WordElementType } = words.reduce(
+    (acc, item) => ({ ...acc, [item.wordId]: { ...item } }),
+    {}
+  );
+
+  console.log(preparedWords);
+  const createWord = (anchor: AnchorElementType, isDataAttribute: boolean = false) => (
     <Anchor
-      key={data.anchorId}
-      isHidden={data.isHidden}
-      isPrepared={data.isPrepared}
-      isdisappear={data.isdisappear}
+      key={anchor.anchorId}
+      isHidden={anchor.isHidden}
+      isPrepared={anchor.isPrepared}
+      isdisappear={anchor.isdisappear}
+      isDataAttr={isDataAttribute}
+      id={anchor.anchorId}
     >
-      {words[data.anchorId] && (
+      {preparedWords[anchor.anchorId] && (
         <Draggable
-          draggableElemInfo={{ ...words[data.anchorId] }}
+          draggableElemInfo={{ ...preparedWords[anchor.anchorId] }}
           isTransitioned={isTransitioned}
-          originCoords={originCoords[data.anchorId] ?? { x: 0, y: 0 }}
+          originCoords={originCoords[anchor.anchorId] ?? { x: 0, y: 0 }}
           dragStartHandler={dragStartHandler}
           dragMoveHandler={dragMoveHandler}
           dragEndHandler={dragEndHandler}
+          isBlockAnimaton={isBlockAnimaton}
         >
-          <AnswerWord content={words[data.anchorId].text} key={words[data.anchorId].wordId} />
+          <AnswerWord
+            content={preparedWords[anchor.anchorId].text}
+            key={preparedWords[anchor.anchorId].wordId}
+          />
         </Draggable>
       )}
     </Anchor>
@@ -58,7 +72,7 @@ const DropZone = ({
     </div>
   ) : (
     <ul className="drop-zone" data-dropname={dropName} ref={link}>
-      {anchors.map((anchor) => createWord(anchor))}
+      {anchors.map((anchor) => createWord(anchor, true))}
     </ul>
   );
 };

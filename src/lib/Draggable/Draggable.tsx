@@ -15,37 +15,40 @@ const Draggable = ({
   dragStartHandler,
   dragMoveHandler,
   dragEndHandler,
+  isBlockAnimaton,
 }: DraggablePropsType) => {
+  // ANIMATION CONTROL------------------------------------------------------------
   const [isDragStart, setDragStart] = useState(false);
-  const [isBlockAnimaton, setBlockAnimation] = useState(false);
+  // const [isBlockAnimaton, setBlockAnimation] = useState(false);
+  // SETTINGS FOR DETERMINING THE CURRENT ZONE (bellow element)-------------------
   const inDropArea = useRef(false);
   const currentArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
   const prevDropArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
   const debounce = useRef<string>();
-  // координаты перемещения---------------------------------------------
+  // TRANSLATE COORDS-------------------------------------------------------------
   const [translateCoords, setTranslateCoords] = useState(INITIAL_TRANSLATE_COORDS);
   const [shiftCoords, setShiftCoords] = useState(INITIAL_SHIFT_COORDS);
 
-  // helpersFunctions---------------------------------------------------
+  // HELPERS FUNCTIONS---------------------------------------------------
   const setCurrentZone = useCallback((dropZoneName: string | null) => {
-    const prevDA = prevDropArea.current.match(/(\w+)Zone/)![1];
+    // const prevDA = prevDropArea.current.match(/(\w+)Zone/)![1];
     if (inDropArea.current && dropZoneName) {
-      if (prevDA === dropZoneName) {
+      if (prevDropArea.current === dropZoneName) {
         return dropZoneName;
       } else {
         prevDropArea.current = dropZoneName;
         return dropZoneName;
       }
     } else {
-      return `out-${prevDA}`;
+      return `out-${dropZoneName}`;
     }
   }, []);
 
   const isDraggableElemInDropZone = useCallback(
     (bellowElem: null | HTMLElement) =>
-      // если курсор выходит за viewport element = null
+      // если курсор выходит за viewport, то bellowElem = null
       bellowElem
-        ? bellowElem.dataset.dropname || bellowElem.classList.contains('anchor')
+        ? bellowElem.dataset.dropname || bellowElem.matches('[data-anchor="pendingAnchor"]')
           ? true
           : false
         : false,
@@ -54,9 +57,14 @@ const Draggable = ({
 
   const getBellowElement: GetBellowElement = (target, x, y) => {
     target.classList.add('hidden');
-    const bellowElem =
-      (document.elementFromPoint(x, y)?.closest('.drop-zone') as HTMLElement) ??
-      (document.elementFromPoint(x, y) as HTMLElement);
+    let bellowElem: HTMLElement;
+    if (document.elementFromPoint(x, y)?.matches('[data-anchor="pendingAnchor"]')) {
+      bellowElem = document.elementFromPoint(x, y) as HTMLElement;
+    } else if (document.elementFromPoint(x, y)?.closest('.drop-zone')) {
+      bellowElem = document.elementFromPoint(x, y)?.closest('.drop-zone') as HTMLElement;
+    } else {
+      bellowElem = document.elementFromPoint(x, y) as HTMLElement;
+    }
     target.classList.remove('hidden');
 
     return bellowElem;
@@ -67,11 +75,11 @@ const Draggable = ({
       React.cloneElement(item, {
         ...item.props,
         style,
-        onMouseDown: !isBlockAnimaton ? dragStart : null,
+        onMouseDown: isBlockAnimaton ? null : dragStart,
       })
     );
 
-  // handlerFunctions---------------------------------------------------
+  // HANDLER FUNCTIONS---------------------------------------------------
   const dragStart = useCallback(
     (ev: React.MouseEvent<HTMLSpanElement>) => {
       const draggableElem = ev.target as HTMLSpanElement;
@@ -99,7 +107,13 @@ const Draggable = ({
     (ev: MouseEvent) => {
       const bellowElem = getBellowElement(ev.target as HTMLElement, ev.clientX, ev.clientY);
       inDropArea.current = isDraggableElemInDropZone(bellowElem);
-      const currentAreaName = setCurrentZone(bellowElem.dataset.dropname ?? null);
+      const dataAttr =
+        Object.keys(bellowElem.dataset).length !== 0
+          ? bellowElem.dataset.dropname
+            ? (bellowElem.dataset.dropname as string)
+            : (bellowElem.dataset.anchor as string)
+          : null;
+      const currentAreaName = setCurrentZone(dataAttr);
 
       if (currentAreaName !== debounce.current) {
         debounce.current = currentAreaName;
@@ -134,16 +148,17 @@ const Draggable = ({
   const dragEnd = useCallback(
     (ev: MouseEvent) => {
       (ev.target as HTMLElement).classList.remove('draggable');
-
+      const bellowElement = getBellowElement(ev.target as HTMLElement, ev.clientX, ev.clientY);
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
-      setBlockAnimation(true);
+      // setBlockAnimation(true);
 
       dragEndHandler({
         from: draggableElemInfo.from,
         originId: draggableElemInfo.originId,
         dragId: draggableElemInfo.wordId,
         currentZone: currentArea.current,
+        anchorId: bellowElement.dataset.id ?? null,
       });
     },
     [dragEndHandler, draggableElemInfo]
@@ -156,7 +171,7 @@ const Draggable = ({
     } else {
       window.removeEventListener('mousemove', dragMove);
       window.removeEventListener('mouseup', dragEnd);
-      setTimeout(() => setBlockAnimation(false), TRANSITION_TIME);
+      // setTimeout(() => setBlockAnimation(false), TRANSITION_TIME);
     }
 
     return () => {

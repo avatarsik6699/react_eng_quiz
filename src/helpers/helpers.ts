@@ -5,8 +5,27 @@ import { Coord } from '../templates/Quiz/Quiz.types';
 const getElemsBeforeDraggableElem = (
   words: WordElementType[],
   dragId: number,
+  area: 'pending' | 'answers',
   includeCurrent = false
-) => words.filter((word) => (includeCurrent ? word.wordId >= dragId : word.wordId > dragId));
+) => {
+  let isGap = false;
+  if (area === 'pending') {
+    return words.filter((word, index) => {
+      if (word.wordId > dragId && !isGap) {
+        if (Math.abs(index - 1 - word.wordId) > 1) {
+          isGap = true;
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return includeCurrent && word.wordId === dragId;
+      }
+    });
+  } else {
+    return words.filter((word) => (includeCurrent ? word.wordId >= dragId : word.wordId > dragId));
+  }
+};
 
 const getPreparedAnchors = (anchorsRoot: HTMLElement): HTMLElement[] =>
   (Array.from(anchorsRoot.children) as HTMLElement[]).reduce(
@@ -29,6 +48,7 @@ type GetShiftWordsSettings = { withDraggableElem: boolean; directionShift: 'left
 const getShiftedWords = (
   words: WordElementType[],
   dragId: number,
+  area: 'answers' | 'pending',
   settings?: GetShiftWordsSettings
 ) => {
   const { withDraggableElem, directionShift } = settings ?? {
@@ -37,10 +57,15 @@ const getShiftedWords = (
   }; // default settings
 
   const correctWords = withDraggableElem ? words : words.filter((word) => word.wordId !== dragId);
+  const elemsBeforeDraggableElem = getElemsBeforeDraggableElem(
+    words,
+    dragId,
+    area,
+    withDraggableElem
+  ).map((word) => word.wordId);
+
   return correctWords.map((word) =>
-    getElemsBeforeDraggableElem(words, dragId, withDraggableElem)
-      .map((word) => word.wordId)
-      .includes(word.wordId)
+    elemsBeforeDraggableElem.includes(word.wordId)
       ? { ...word, wordId: directionShift === 'right' ? word.wordId + 1 : word.wordId - 1 }
       : word
   );
@@ -48,6 +73,7 @@ const getShiftedWords = (
 
 const calcOriginCoords = (
   root: HTMLElement, // area из которой собираем
+  area: 'answers' | 'pending',
   words: WordElementType[], // целевые слова
   dragId: number, // точка отсчета
   additionalSettings?: { includeCurrent: boolean; shiftDirection: 'right' | 'left' }
@@ -57,7 +83,7 @@ const calcOriginCoords = (
     shiftDirection: 'left',
   };
   const anchorsCoords = getAnchorsCoords(getPreparedAnchors(root)) as Coord[];
-  return getElemsBeforeDraggableElem(words, dragId, includeCurrent).reduce(
+  return getElemsBeforeDraggableElem(words, dragId, area, includeCurrent).reduce(
     (originCoords, word) => ({
       ...originCoords,
       [word.wordId]: {
@@ -91,7 +117,6 @@ const getUpdatedAnswersAnchors = (
             ? anchor.isPrepared && anchor.answerId === null
             : anchor.isHidden && anchor.answerId === null
         );
-  console.log(targetAnchor);
   if (targetAnchor) {
     updatedAnswersAnchors.splice(targetAnchor.anchorId, 1, {
       ...targetAnchor,

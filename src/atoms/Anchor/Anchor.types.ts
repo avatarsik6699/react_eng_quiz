@@ -3,6 +3,8 @@ interface AnchorPropsType {
   isHidden?: boolean;
   isPrepared?: boolean;
   isdisappear: boolean;
+  isDataAttr: boolean;
+  id: number;
 }
 
 type AnchorElementType = {
