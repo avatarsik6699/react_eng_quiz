@@ -1,23 +1,17 @@
 .anchor {
+  will-change: background-color;
+  transition: opacity 200ms ease, background-color 200ms ease;
+  opacity: 1;
   width: 70px;
   height: 30px;
-
-  background: #e6e6e6;
-  box-shadow: inset 0px 8px 4px -6px rgba(0, 0, 0, 0.25);
   border-radius: 13px;
   display: inline-block;
-  transition: opacity 500ms ease;
-  opacity: 1;
-}
+  &_show {
+    background: #e6e6e6;
+    box-shadow: inset 0px 8px 4px -6px rgba(0, 0, 0, 0.25);
+  }
 
-.anchor.hidden {
-  visibility: hidden;
-}
-
-.anchor.disappear {
-  opacity: 0;
-}
-
-.anchor.prepared {
-  opacity: 0.3;
+  &_prepared {
+    background-color: rgba(59, 116, 85, 0.452);
+  }
 }

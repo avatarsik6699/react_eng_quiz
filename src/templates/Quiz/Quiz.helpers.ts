@@ -1,6 +1,6 @@
 import { AnchorElementType } from '../../atoms/Anchor/Anchor.types';
 import { WordElementType } from '../../atoms/AnswerWord/AnswerWord.types';
-import { AnchorsCoords, Coord } from './Quiz.types';
+import { Coord } from './Quiz.types';
 interface IOriginCoords {
   [key: string]: Coord;
 }
@@ -79,25 +79,29 @@ const getIdBeforeDraggableElem = (
     .map((word) => word.wordId);
 };
 
-const getUpdatedAnswersAnchors = (params: { anchors: AnchorElementType[]; action: 'show' | 'hide' | 'prepare' }) => {
+const getUpdatedAnswersAnchors = (params: {
+  anchors: AnchorElementType[];
+  action: 'setBusy' | 'delBusy' | 'prepare' | 'disprepare';
+}) => {
   const { action, anchors } = params;
   const convertedAnchors = _getConvertedAnchors(anchors);
   let targetAnchor;
-  if (action === 'show') {
+  if (action === 'setBusy') {
     targetAnchor = [...anchors].reverse().find((anchor) => anchor.isPrepared);
-  } else if (action === 'hide') {
-    targetAnchor = [...anchors].reverse().find((anchor) => !anchor.isHidden);
+  } else if (action === 'delBusy') {
+    targetAnchor = [...anchors].reverse().find((anchor) => anchor.answerId !== null);
+  } else if (action === 'disprepare') {
+    targetAnchor = [...anchors].reverse().find((anchor) => anchor.isPrepared && anchor.answerId === null);
   } else {
-    targetAnchor = anchors.find((anchor) => anchor.isHidden && anchor.answerId === null);
+    targetAnchor = anchors.find((anchor) => anchor.answerId === null);
   }
 
   // проверка на undefined
   if (targetAnchor) {
     convertedAnchors[targetAnchor.anchorId] = {
       ...targetAnchor,
-      isHidden: action === 'hide',
       isPrepared: action === 'prepare',
-      answerId: action === 'show' ? targetAnchor.anchorId : null,
+      answerId: action === 'setBusy' ? targetAnchor.anchorId : null,
     };
   }
 

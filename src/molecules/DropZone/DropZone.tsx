@@ -29,7 +29,6 @@ const DropZone = ({
       key={anchor.anchorId}
       isHidden={anchor.isHidden}
       isPrepared={anchor.isPrepared}
-      isdisappear={anchor.isdisappear}
       isDataAttr={isDataAttribute}
       id={anchor.anchorId}
     >
@@ -43,10 +42,7 @@ const DropZone = ({
           dragEndHandler={dragEndHandler}
           isBlockAnimaton={isBlockAnimaton}
         >
-          <AnswerWord
-            content={preparedWords[anchor.anchorId].text}
-            key={preparedWords[anchor.anchorId].wordId}
-          />
+          <AnswerWord content={preparedWords[anchor.anchorId].text} key={preparedWords[anchor.anchorId].wordId} />
         </Draggable>
       )}
     </Anchor>
@@ -54,9 +50,7 @@ const DropZone = ({
 
   // [words] => [[words],[words],[wrods]...]
   const getPreparedAnchors = () =>
-    [...Array(Math.ceil(anchors.length / 6)).keys()].map((row) =>
-      anchors.slice(row * 6, (row + 1) * 6)
-    );
+    [...Array(Math.ceil(anchors.length / 6)).keys()].map((row) => anchors.slice(row * 6, (row + 1) * 6));
 
   const createAnchors = () =>
     getPreparedAnchors().map((anchorWrapper, rowId) => (

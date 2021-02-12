@@ -1,0 +1,24 @@
+.message {
+  position: relative;
+  will-change: opacity;
+  opacity: 0;
+  transition: opacity 2000ms ease;
+  width: 50%;
+  &_show {
+    opacity: 1;
+  }
+}
+
+.message__text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  position: absolute;
+  text-align: center;
+  font: normal normal 24px/28px Roboto, sans-serif;
+  color: rgb(133, 238, 203);
+  text-shadow: -1px -2px 2px #ffffff, 1px 2px 2px rgba(91, 13, 13, 0.5);
+  &_wrong {
+    color: #ff0000;
+  }
+}
