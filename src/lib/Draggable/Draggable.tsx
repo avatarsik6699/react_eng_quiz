@@ -1,9 +1,5 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  INITIAL_SHIFT_COORDS,
-  INITIAL_TRANSLATE_COORDS,
-  TRANSITION_TIME,
-} from '../../settings/constants';
+import { INITIAL_SHIFT_COORDS, INITIAL_TRANSLATE_COORDS, TRANSITION_TIME } from '../../settings/constants';
 import { DraggablePropsType, GetBellowElement } from './Draggable.types';
 import './Draggable.scss';
 
@@ -40,7 +36,7 @@ const Draggable = ({
         return dropZoneName;
       }
     } else {
-      return `out-${dropZoneName}`;
+      return `out-${prevDropArea.current}`;
     }
   }, []);
 
@@ -190,14 +186,7 @@ const Draggable = ({
         : `translate(${originCoords.x}px, ${originCoords.y}px)`,
       transition: isDragStart || isTransitioned ? '' : `transform ${TRANSITION_TIME}ms ease`,
     }),
-    [
-      isDragStart,
-      isTransitioned,
-      originCoords.x,
-      originCoords.y,
-      translateCoords.x,
-      translateCoords.y,
-    ]
+    [isDragStart, isTransitioned, originCoords.x, originCoords.y, translateCoords.x, translateCoords.y]
   );
 
   return <Fragment>{makeDraggableElement()}</Fragment>;

@@ -24,7 +24,6 @@ const DropZone = ({
     {}
   );
 
-  console.log(preparedWords);
   const createWord = (anchor: AnchorElementType, isDataAttribute: boolean = false) => (
     <Anchor
       key={anchor.anchorId}

@@ -1,3 +1,4 @@
 interface QuizPropsType {}
 type Coord = { x: number; y: number };
-export type { Coord, QuizPropsType };
+type AnchorsCoords = Coord[];
+export type { Coord, QuizPropsType, AnchorsCoords };
