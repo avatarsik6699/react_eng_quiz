@@ -47,8 +47,8 @@ const calcOriginCoords = (
     (originCoords: IOriginCoords, id) => ({
       ...originCoords,
       [id]: {
-        x: coords[direction === 'right' ? id + 1 : id - 1].x - coords[id].x,
-        y: coords[direction === 'right' ? id + 1 : id - 1].y - coords[id].y,
+        x: coords[direction === 'right' ? (coords.length === id + 1 ? id : id + 1) : id - 1].x - coords[id].x, // overfloow
+        y: coords[direction === 'right' ? (coords.length === id + 1 ? id : id + 1) : id - 1].y - coords[id].y, // overfloow
       },
     }),
     {}
@@ -62,9 +62,9 @@ const getAnchorsDomCoords = (anchorsDomRoot: HTMLElement) =>
   }));
 
 const getIdBeforeDraggableElem = (
-  words: { wordsList: IWord[]; wordsArea: 'waiting' | 'answers' }, // слова которые надо перестроить
-  draggableElem: IWord, // переносимое слово
-  action: 'put' | 'take' // кладем или берем слово
+  words: { wordsList: IWord[]; wordsArea: 'waiting' | 'answers' },
+  draggableElem: IWord,
+  action: 'put' | 'take'
 ) => {
   const { wordsList, wordsArea } = words;
   const isGap = (word: IWord) => {
@@ -77,16 +77,14 @@ const getIdBeforeDraggableElem = (
     }
   };
 
-  // определяем есть ли кто то на месте только когда двигаемся из answerArea
   const isAnchorBusy =
     draggableElem.from === 'waiting' ? true : wordsList.find((word) => word.wordId === draggableElem.originId);
   let isBlocked = isAnchorBusy ? false : true;
   let shiftedId = action === 'put' ? draggableElem.originId : draggableElem.wordId;
-
-  return wordsList
+  const result = wordsList
     .filter((word) => {
       if (wordsArea === 'waiting') {
-        if (isBlocked) return false; // если есть разрыв / на месте originId пусто
+        if (isBlocked) return false;
         if (action === 'put') {
           if (word.wordId >= draggableElem.originId) {
             return isGap(word);
@@ -105,6 +103,7 @@ const getIdBeforeDraggableElem = (
       }
     })
     .map((word) => word.wordId);
+  return result;
 };
 
 const getUpdatedAnswersAnchors = (
@@ -136,7 +135,7 @@ const getUpdatedAnswersAnchors = (
     }
   }
 
-  // check on undefined
+  // check undefined
   if (targetAnchor) {
     convertedAnchors[targetAnchor.anchorId] = {
       ...targetAnchor,
@@ -156,11 +155,18 @@ const getShiftedWords = (
 ) => {
   const { elementAction, directionShift } = settings;
 
-  // если слово убирается из words, то удаляем его из words и сдвигаем только слова, расположенные правее
   const correctWords = elementAction === 'add' ? words : words.filter((word) => word.wordId !== dragId);
   return correctWords.map((word) =>
     idBeforeDraggableElem.includes(word.wordId)
-      ? { ...word, wordId: directionShift === 'right' ? word.wordId + 1 : word.wordId - 1 }
+      ? {
+          ...word,
+          wordId:
+            directionShift === 'right'
+              ? words.length === word.wordId // overfloow
+                ? word.wordId
+                : word.wordId + 1
+              : word.wordId - 1,
+        }
       : word
   );
 };

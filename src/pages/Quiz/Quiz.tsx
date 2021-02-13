@@ -142,9 +142,11 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
 
   // HANDLER FUNCTIONS---------------------------------------------
   const checkAnswerHandler = useCallback(() => {
-    const correctText = sentenceText.map((item) => item.translation).join(' ');
+    const correctText = sentenceText
+      .filter((item) => item.translation !== '')
+      .map((item) => item.translation.toLowerCase())
+      .join(' ');
     const answersText = answersWords.map((word) => word.text).join(' ');
-
     if (correctText === answersText) {
       setResultMessage('is complete!!!');
     } else {
@@ -198,7 +200,6 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
         const correctCurrentArea = isTargetWaitingAnchorBusy(currentArea, anchorId as number)
           ? 'waitingArea'
           : currentArea;
-        console.log(correctCurrentArea, currentArea);
         if (correctCurrentArea === 'waitingArea') {
           // translate drag elem to pending
           translateDragElemFromAnswers({ dragId, anchorId: originId });

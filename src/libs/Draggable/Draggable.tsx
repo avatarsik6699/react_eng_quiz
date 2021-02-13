@@ -93,20 +93,27 @@ const Draggable = ({
         ...item.props,
         style,
         onMouseDown: isBlockAnimaton ? null : dragStart,
+        onTouchStart: isBlockAnimaton ? null : dragStart,
       })
     );
 
   // HANDLER FUNCTIONS---------------------------------------------------
   const dragStart = useCallback(
-    (ev: React.MouseEvent<HTMLSpanElement>) => {
+    (ev: React.MouseEvent<HTMLSpanElement> | React.TouchEvent<HTMLSpanElement>) => {
+      let shiftCoords =
+        ev.nativeEvent instanceof MouseEvent
+          ? [(ev as React.MouseEvent).clientX, (ev as React.MouseEvent).clientY]
+          : [0, 0];
+
       const draggableElem = ev.target as HTMLSpanElement;
       draggableElem.classList.add('draggable');
       setDragStart(true);
       setDraggableElem(draggableElem);
+
       setShiftCoords((prevState) => ({
         ...prevState,
-        shiftX: ev.clientX - draggableElem.getBoundingClientRect().x,
-        shiftY: ev.clientY - draggableElem.getBoundingClientRect().y,
+        shiftX: shiftCoords[0] - draggableElem.getBoundingClientRect().x,
+        shiftY: shiftCoords[1] - draggableElem.getBoundingClientRect().y,
         initialX: draggableElem.getBoundingClientRect().x,
         initialY: draggableElem.getBoundingClientRect().y,
       }));
@@ -121,8 +128,11 @@ const Draggable = ({
   );
 
   const dragMove = useCallback(
-    (ev: MouseEvent) => {
-      const { clientX, clientY, target } = ev;
+    (ev: MouseEvent | TouchEvent) => {
+      const { clientX, clientY, target } = ev instanceof TouchEvent ? ev.touches[0] : ev;
+      const touchShifteCoords = [40, 20];
+      if (ev instanceof TouchEvent) ev.preventDefault();
+
       const bellowElem = getBellowElement(target as HTMLElement, clientX, clientY);
       inDropArea.current = isDraggableElemInDropArea(bellowElem);
       const currentAreaName = setCurrentArea(getBellowElemDataAttr(bellowElem));
@@ -138,8 +148,14 @@ const Draggable = ({
 
       setTranslateCoords((prevState) => ({
         ...prevState,
-        x: clientX - shiftCoords.initialX - shiftCoords.shiftX,
-        y: clientY - shiftCoords.initialY - shiftCoords.shiftY,
+        x:
+          ev instanceof TouchEvent
+            ? clientX - shiftCoords.initialX - touchShifteCoords[0]
+            : clientX - shiftCoords.initialX - shiftCoords.shiftX,
+        y:
+          ev instanceof TouchEvent
+            ? clientY - shiftCoords.initialY - touchShifteCoords[1]
+            : clientY - shiftCoords.initialY - shiftCoords.shiftY,
       }));
       if (bellowElem) bellowElem.ondragstart = () => false;
     },
@@ -157,11 +173,11 @@ const Draggable = ({
   );
 
   const dragEnd = useCallback(
-    (ev: MouseEvent) => {
-      const { clientX, clientY, target } = ev;
+    (ev: MouseEvent | TouchEvent) => {
+      const { clientX, clientY, target } = ev instanceof TouchEvent ? ev.changedTouches[0] : ev;
+
       draggableElem?.classList.remove('draggable');
       const bellowElement = getBellowElement(target as HTMLElement, clientX, clientY);
-      console.log(bellowElement);
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
 
@@ -191,14 +207,20 @@ const Draggable = ({
     if (isDragStart && !isBlockAnimaton) {
       window.addEventListener('mousemove', dragMove);
       window.addEventListener('mouseup', dragEnd);
+      window.addEventListener('touchmove', dragMove, false);
+      window.addEventListener('touchend', dragEnd);
     } else {
       window.removeEventListener('mousemove', dragMove);
       window.removeEventListener('mouseup', dragEnd);
+      window.removeEventListener('touchmove', dragMove);
+      window.removeEventListener('touchend', dragEnd);
     }
 
     return () => {
       window.removeEventListener('mousemove', dragMove);
       window.removeEventListener('mouseup', dragEnd);
+      window.removeEventListener('touchmove', dragMove);
+      window.removeEventListener('touchend', dragEnd);
     };
   }, [dragEnd, dragMove, isBlockAnimaton, isDragStart]);
 

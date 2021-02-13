@@ -7,8 +7,9 @@
   border-radius: 13px;
   display: inline-block;
   will-change: transform;
+  touch-action: none;
 
-  font: normal normal 18px/25px Roboto;
+  font: normal normal 16px/25px Roboto;
   color: #000000;
   text-align: center;
   user-select: none;

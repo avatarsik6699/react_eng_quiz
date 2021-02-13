@@ -5,4 +5,4 @@ const SentenceWord = ({ content }: ISentenceWordProps) => {
   return <span className="sentence-word">{content}</span>;
 };
 
-export default SentenceWord;
+export default React.memo(SentenceWord);
