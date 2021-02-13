@@ -142,9 +142,12 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
 
   // HANDLER FUNCTIONS---------------------------------------------
   const checkAnswerHandler = useCallback(() => {
-    const correctText = sentenceText.map((item) => item.translation).join(' ');
+    const correctText = sentenceText
+      .filter((item) => item.translation !== '')
+      .map((item) => item.translation.toLowerCase())
+      .join(' ');
     const answersText = answersWords.map((word) => word.text).join(' ');
-
+    console.log(correctText, answersText);
     if (correctText === answersText) {
       setResultMessage('is complete!!!');
     } else {
