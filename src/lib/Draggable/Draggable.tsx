@@ -15,19 +15,45 @@ const Draggable = ({
 }: DraggablePropsType) => {
   // ANIMATION CONTROL------------------------------------------------------------
   const [isDragStart, setDragStart] = useState(false);
-  // const [isBlockAnimaton, setBlockAnimation] = useState(false);
+  const [draggableElem, setDraggableElem] = useState<HTMLElement | null>(null);
+
   // SETTINGS FOR DETERMINING THE CURRENT ZONE (bellow element)-------------------
   const inDropArea = useRef(false);
   const currentArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
   const prevDropArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
   const debounce = useRef<string>();
+
   // TRANSLATE COORDS-------------------------------------------------------------
   const [translateCoords, setTranslateCoords] = useState(INITIAL_TRANSLATE_COORDS);
   const [shiftCoords, setShiftCoords] = useState(INITIAL_SHIFT_COORDS);
 
   // HELPERS FUNCTIONS---------------------------------------------------
+  const getBellowElemDataAttr = (bellowElem: HTMLElement | null) => {
+    if (bellowElem) {
+      return Object.keys(bellowElem.dataset).length !== 0
+        ? bellowElem.dataset.dropname
+          ? (bellowElem.dataset.dropname as string)
+          : (bellowElem.dataset.anchor as string)
+        : null;
+    } else {
+      return null;
+    }
+  };
+
+  const defineElemFromPoint = (selector: string | string[], coords: [x: number, y: number]) =>
+    Array.isArray(selector)
+      ? selector.reduce(
+          (elem: HTMLElement | null, s) =>
+            elem === null && document.elementFromPoint(...coords) !== null
+              ? (document.elementFromPoint(...coords) as HTMLElement).closest(s)
+                ? (document.elementFromPoint(...coords) as HTMLElement).closest(s)
+                : elem
+              : elem,
+          null
+        )
+      : ((document.elementFromPoint(...coords) as HTMLElement).closest(selector) as HTMLElement);
+
   const setCurrentZone = useCallback((dropZoneName: string | null) => {
-    // const prevDA = prevDropArea.current.match(/(\w+)Zone/)![1];
     if (inDropArea.current && dropZoneName) {
       if (prevDropArea.current === dropZoneName) {
         return dropZoneName;
@@ -51,20 +77,15 @@ const Draggable = ({
     []
   );
 
-  const getBellowElement: GetBellowElement = (target, x, y) => {
+  const getBellowElement: GetBellowElement = useCallback((target, x, y) => {
+    const matchList = ['[data-anchor="pendingAnchor"]', '.drop-zone'];
+
     target.classList.add('hidden');
-    let bellowElem: HTMLElement;
-    if (document.elementFromPoint(x, y)?.matches('[data-anchor="pendingAnchor"]')) {
-      bellowElem = document.elementFromPoint(x, y) as HTMLElement;
-    } else if (document.elementFromPoint(x, y)?.closest('.drop-zone')) {
-      bellowElem = document.elementFromPoint(x, y)?.closest('.drop-zone') as HTMLElement;
-    } else {
-      bellowElem = document.elementFromPoint(x, y) as HTMLElement;
-    }
+    const bellowElem = defineElemFromPoint(matchList, [x, y]);
     target.classList.remove('hidden');
 
-    return bellowElem;
-  };
+    return bellowElem ?? (document.elementFromPoint(x, y) as HTMLElement);
+  }, []);
 
   const makeDraggableElement = () =>
     React.Children.map(children, (item) =>
@@ -81,6 +102,7 @@ const Draggable = ({
       const draggableElem = ev.target as HTMLSpanElement;
       draggableElem.classList.add('draggable');
       setDragStart(true);
+      setDraggableElem(draggableElem);
       setShiftCoords((prevState) => ({
         ...prevState,
         shiftX: ev.clientX - draggableElem.getBoundingClientRect().x,
@@ -101,15 +123,10 @@ const Draggable = ({
 
   const dragMove = useCallback(
     (ev: MouseEvent) => {
-      const bellowElem = getBellowElement(ev.target as HTMLElement, ev.clientX, ev.clientY);
+      const { clientX, clientY, target } = ev;
+      const bellowElem = getBellowElement(target as HTMLElement, clientX, clientY);
       inDropArea.current = isDraggableElemInDropZone(bellowElem);
-      const dataAttr =
-        Object.keys(bellowElem.dataset).length !== 0
-          ? bellowElem.dataset.dropname
-            ? (bellowElem.dataset.dropname as string)
-            : (bellowElem.dataset.anchor as string)
-          : null;
-      const currentAreaName = setCurrentZone(dataAttr);
+      const currentAreaName = setCurrentZone(getBellowElemDataAttr(bellowElem));
 
       if (currentAreaName !== debounce.current) {
         debounce.current = currentAreaName;
@@ -124,14 +141,16 @@ const Draggable = ({
 
       setTranslateCoords((prevState) => ({
         ...prevState,
-        x: ev.clientX - shiftCoords.initialX - shiftCoords.shiftX,
-        y: ev.clientY - shiftCoords.initialY - shiftCoords.shiftY,
+        x: clientX - shiftCoords.initialX - shiftCoords.shiftX,
+        y: clientY - shiftCoords.initialY - shiftCoords.shiftY,
       }));
-      bellowElem.ondragstart = () => false;
+      if (bellowElem) bellowElem.ondragstart = () => false;
     },
     [
       dragMoveHandler,
-      draggableElemInfo,
+      draggableElemInfo.from,
+      draggableElemInfo.wordId,
+      getBellowElement,
       isDraggableElemInDropZone,
       setCurrentZone,
       shiftCoords.initialX,
@@ -143,21 +162,28 @@ const Draggable = ({
 
   const dragEnd = useCallback(
     (ev: MouseEvent) => {
-      (ev.target as HTMLElement).classList.remove('draggable');
-      const bellowElement = getBellowElement(ev.target as HTMLElement, ev.clientX, ev.clientY);
+      const { clientX, clientY, target } = ev;
+      draggableElem?.classList.remove('draggable');
+      const bellowElement = getBellowElement(target as HTMLElement, clientX, clientY);
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
-      // setBlockAnimation(true);
 
       dragEndHandler({
         from: draggableElemInfo.from,
         originId: draggableElemInfo.originId,
         dragId: draggableElemInfo.wordId,
         currentZone: currentArea.current,
-        anchorId: bellowElement.dataset.id ?? null,
+        anchorId: bellowElement ? bellowElement.dataset.id : null,
       });
     },
-    [dragEndHandler, draggableElemInfo]
+    [
+      dragEndHandler,
+      draggableElem?.classList,
+      draggableElemInfo.from,
+      draggableElemInfo.originId,
+      draggableElemInfo.wordId,
+      getBellowElement,
+    ]
   );
 
   useEffect(() => {
@@ -167,7 +193,6 @@ const Draggable = ({
     } else {
       window.removeEventListener('mousemove', dragMove);
       window.removeEventListener('mouseup', dragEnd);
-      // setTimeout(() => setBlockAnimation(false), TRANSITION_TIME);
     }
 
     return () => {

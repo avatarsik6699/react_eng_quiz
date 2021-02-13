@@ -84,7 +84,7 @@ const getUpdatedAnswersAnchors = (params: {
   action: 'setBusy' | 'delBusy' | 'prepare' | 'disprepare';
 }) => {
   const { action, anchors } = params;
-  const convertedAnchors = _getConvertedAnchors(anchors);
+  const convertedAnchors = getConvertedAnchors(anchors);
   let targetAnchor;
   if (action === 'setBusy') {
     targetAnchor = [...anchors].reverse().find((anchor) => anchor.isPrepared);
@@ -105,7 +105,7 @@ const getUpdatedAnswersAnchors = (params: {
     };
   }
 
-  return _getConvertedAnchors(convertedAnchors);
+  return getConvertedAnchors(convertedAnchors);
 };
 
 const getShiftedWords = (
@@ -133,6 +133,7 @@ export {
   getUpdatedAnswersAnchors,
   getConvertedWords,
   _getAnchorsDomList,
+  getConvertedAnchors,
 };
 
 // PRIVATE FUNCTIONS-------------------------------------------------------------
@@ -148,7 +149,7 @@ const _getAnchorsDomList = <T extends HTMLElement>(anchorsDomRoot: T): T[] =>
 type AnchorsObj = { [key: string]: AnchorElementType };
 type AnchorArr = AnchorElementType[];
 
-const _getConvertedAnchors = <R extends AnchorArr | AnchorsObj>(
+const getConvertedAnchors = <R extends AnchorArr | AnchorsObj>(
   anchors: R
 ): R extends AnchorArr ? AnchorsObj : AnchorArr =>
   Array.isArray(anchors)

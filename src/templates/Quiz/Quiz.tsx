@@ -12,6 +12,7 @@ import { WordElementType } from '../../atoms/AnswerWord/AnswerWord.types';
 import {
   calcOriginCoords,
   getAnchorsDomCoords,
+  getConvertedAnchors,
   getConvertedWords,
   getIdBeforeDraggableElem,
   getShiftedWords,
@@ -65,11 +66,15 @@ const Quiz = () => {
   const [pendingAnchors, setPendingAnchors] = useState(anchorsInPendingZone);
 
   // HELPER FUNCTIONS---------------------------------------------
+  const getLastBusyAnchor = useCallback(
+    () => [...answersAnchors].reverse().find((anchor) => anchor.answerId !== null) as AnchorElementType,
+    [answersAnchors]
+  );
+
   const getTargetAnswersAnchorId = (anchors: AnchorElementType[]) =>
     anchors.find((anchor) => anchor.answerId === null)?.anchorId as number;
 
   const clearBlockAnimation = (time: number = TRANSITION_TIME) => {
-    console.log('clear');
     setTimeout(() => setBlockAnimation(false), time);
   };
   const resetOriginCoords = (time: number = 0) => {
@@ -95,10 +100,10 @@ const Quiz = () => {
   );
 
   const translateDragElemFromAnswers = useCallback(
-    (params: { dragId: number; anchorId: number }) => {
+    (params: { dragId: number; anchorId: number }, anchorsRoot: HTMLElement = pendingRef.current as HTMLElement) => {
       const { dragId, anchorId } = params;
       const draggableElemCoords = getAnchorsDomCoords(answersRef.current as HTMLElement)[dragId];
-      const targetAnchorCoords = getAnchorsDomCoords(pendingRef.current as HTMLElement)[anchorId];
+      const targetAnchorCoords = getAnchorsDomCoords(anchorsRoot)[anchorId];
       setAnswersOriginCoords({
         ...answersOriginCoords,
         [dragId]: {
@@ -130,7 +135,7 @@ const Quiz = () => {
   const checkAnswerHandler = useCallback(() => {
     const correctText = 'он ест рыбу дома';
     const getAnswerText = () => answersWords.map((word) => word.text).join(' ');
-    console.log();
+
     if (correctText === getAnswerText()) {
       setResultMessage('is complete!!!');
     } else {
@@ -159,7 +164,13 @@ const Quiz = () => {
             )
           ),
         });
-      } else
+      } else {
+        const updatedAnswrsAnchors = answersAnchors.map((anchor) =>
+          anchor.anchorId === getLastBusyAnchor().anchorId
+            ? { ...getLastBusyAnchor(), isPrepared: true } // удалил answerId
+            : anchor
+        );
+        setAnswersAnchors(updatedAnswrsAnchors);
         setAnswersOriginCoords({
           ...answersOriginCoords,
           ...calcOriginCoords(
@@ -171,8 +182,9 @@ const Quiz = () => {
             )
           ),
         });
+      }
     },
-    [answersOriginCoords, answersWords, pendingOriginCoords, pendingWords]
+    [answersAnchors, answersOriginCoords, answersWords, getLastBusyAnchor, pendingOriginCoords, pendingWords]
   );
 
   const dragMoveHandler = useCallback(
@@ -206,7 +218,12 @@ const Quiz = () => {
       }
 
       if (from === 'answers') {
-        if (currentZone === 'pendingZone') {
+        const currentArea =
+          currentZone === 'pendingAnchor' && _getAnchorsDomList(pendingRef.current as HTMLElement)[anchorId].children[0]
+            ? 'pendingZone'
+            : currentZone;
+        console.log(currentArea);
+        if (currentArea === 'pendingZone') {
           setBlockAnimation(true); // disable handlers
           // ANIMATION--------------------------------------
 
@@ -227,7 +244,7 @@ const Quiz = () => {
           //UPDATE STATE----------------------------------
           setDraggingId({ originId, wordId: dragId });
           setDragEndEvent('answers-pending');
-        } else if (currentZone === 'pendingAnchor') {
+        } else if (currentArea === 'pendingAnchor') {
           // TRANSLATE TO THE WRONG ANCHOR-----------------------------
           translateDragElemFromAnswers({ dragId, anchorId });
 
@@ -235,8 +252,13 @@ const Quiz = () => {
           setDraggingId({ wordId: dragId, originId: originId });
           setDragEndEvent('answers-wrong-pending');
         } else {
-          clearBlockAnimation();
-          setAnswersOriginCoords({});
+          setBlockAnimation(true); // disable handlers
+          const preparedAnchor = [...answersAnchors].reverse().find((anchor) => anchor.isPrepared) as AnchorElementType;
+          translateDragElemFromAnswers({ dragId, anchorId: preparedAnchor.anchorId }, answersRef.current);
+          setDraggingId({ originId, wordId: dragId });
+          setDragEndEvent('answers-answers');
+          // getLastBusyAnchor();
+          // clearBlockAnimation();
         }
       }
     },
@@ -249,7 +271,7 @@ const Quiz = () => {
       translateDragElemFromPending,
     ]
   );
-  console.log(answersAnchors);
+
   useEffect(() => {
     if (dragEndEvent === 'pending-answers') {
       setTimeout(() => {
@@ -336,6 +358,35 @@ const Quiz = () => {
         // UPDATE STATE---------------------------------------------
         setDragEndEvent('answers-pending');
       }, TRANSITION_TIME + 500);
+    }
+
+    if (dragEndEvent === 'answers-answers') {
+      setTimeout(() => {
+        setDragEndEvent('');
+        isTransitioned.current = true; // off transition
+
+        const targetWord = getConvertedWords(answersWords)[draggingId.wordId];
+        const idBeforeDraggableElem = getIdBeforeDraggableElem(
+          {
+            wordsList: answersWords,
+            wordsArea: 'answers',
+          },
+          targetWord,
+          'take'
+        );
+        const shiftedAnswerWords = getShiftedWords(answersWords, draggingId.wordId, idBeforeDraggableElem, {
+          elementAction: 'remove',
+          directionShift: 'left',
+        });
+        shiftedAnswerWords.push({ ...targetWord, wordId: shiftedAnswerWords.length });
+
+        setAnswersWords(shiftedAnswerWords);
+        setAnswersAnchors(
+          answersAnchors.map((anchor) => (anchor.isPrepared ? { ...anchor, isPrepared: false } : anchor))
+        );
+        resetOriginCoords(100);
+        console.log(shiftedAnswerWords);
+      }, TRANSITION_TIME);
     }
   }, [
     answersAnchors,

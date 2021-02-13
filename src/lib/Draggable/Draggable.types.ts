@@ -14,6 +14,6 @@ type InitTranslateCoords = {
   y: number;
 };
 
-type GetBellowElement = (target: HTMLElement, x: number, y: number) => HTMLElement;
+type GetBellowElement = (target: HTMLElement, x: number, y: number) => HTMLElement | null;
 
 export type { DraggablePropsType, InitTranslateCoords, GetBellowElement };
