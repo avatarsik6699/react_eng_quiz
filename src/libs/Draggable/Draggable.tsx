@@ -19,8 +19,8 @@ const Draggable = ({
 
   // SETTINGS FOR DETERMINING THE CURRENT ZONE (bellow element)-------------------
   const inDropArea = useRef(false);
-  const currentArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
-  const prevDropArea = useRef(draggableElemInfo.from === 'pending' ? 'pendingZone' : 'answersZone');
+  const currentArea = useRef(draggableElemInfo.from === 'waiting' ? 'waitingArea' : 'answersArea');
+  const prevDropArea = useRef(draggableElemInfo.from === 'waiting' ? 'waitingArea' : 'answersArea');
   const debounce = useRef<string>();
 
   // TRANSLATE COORDS-------------------------------------------------------------
@@ -53,24 +53,24 @@ const Draggable = ({
         )
       : ((document.elementFromPoint(...coords) as HTMLElement).closest(selector) as HTMLElement);
 
-  const setCurrentZone = useCallback((dropZoneName: string | null) => {
-    if (inDropArea.current && dropZoneName) {
-      if (prevDropArea.current === dropZoneName) {
-        return dropZoneName;
+  const setCurrentArea = useCallback((dropAreaName: string | null) => {
+    if (inDropArea.current && dropAreaName) {
+      if (prevDropArea.current === dropAreaName) {
+        return dropAreaName;
       } else {
-        prevDropArea.current = dropZoneName;
-        return dropZoneName;
+        prevDropArea.current = dropAreaName;
+        return dropAreaName;
       }
     } else {
       return `out-${prevDropArea.current}`;
     }
   }, []);
 
-  const isDraggableElemInDropZone = useCallback(
+  const isDraggableElemInDropArea = useCallback(
     (bellowElem: null | HTMLElement) =>
       // если курсор выходит за viewport, то bellowElem = null
       bellowElem
-        ? bellowElem.dataset.dropname || bellowElem.matches('[data-anchor="pendingAnchor"]')
+        ? bellowElem.dataset.dropname || bellowElem.matches('[data-anchor="waitingAnchor"]')
           ? true
           : false
         : false,
@@ -78,7 +78,7 @@ const Draggable = ({
   );
 
   const getBellowElement: GetBellowElement = useCallback((target, x, y) => {
-    const matchList = ['[data-anchor="pendingAnchor"]', '.drop-zone'];
+    const matchList = ['[data-anchor="waitingAnchor"]', '.drop-area'];
 
     target.classList.add('hidden');
     const bellowElem = defineElemFromPoint(matchList, [x, y]);
@@ -114,7 +114,6 @@ const Draggable = ({
       dragStartHandler({
         from: draggableElemInfo.from,
         dragId: draggableElemInfo.wordId,
-        currentZone: currentArea.current,
       });
       draggableElem.ondragstart = () => false;
     },
@@ -125,17 +124,15 @@ const Draggable = ({
     (ev: MouseEvent) => {
       const { clientX, clientY, target } = ev;
       const bellowElem = getBellowElement(target as HTMLElement, clientX, clientY);
-      inDropArea.current = isDraggableElemInDropZone(bellowElem);
-      const currentAreaName = setCurrentZone(getBellowElemDataAttr(bellowElem));
+      inDropArea.current = isDraggableElemInDropArea(bellowElem);
+      const currentAreaName = setCurrentArea(getBellowElemDataAttr(bellowElem));
 
       if (currentAreaName !== debounce.current) {
         debounce.current = currentAreaName;
         currentArea.current = currentAreaName;
-
         dragMoveHandler({
           from: draggableElemInfo.from,
-          dragId: draggableElemInfo.wordId,
-          currentZone: currentArea.current,
+          currentArea: currentArea.current as 'out-answersArea' | 'answersArea',
         });
       }
 
@@ -149,10 +146,9 @@ const Draggable = ({
     [
       dragMoveHandler,
       draggableElemInfo.from,
-      draggableElemInfo.wordId,
       getBellowElement,
-      isDraggableElemInDropZone,
-      setCurrentZone,
+      isDraggableElemInDropArea,
+      setCurrentArea,
       shiftCoords.initialX,
       shiftCoords.initialY,
       shiftCoords.shiftX,
@@ -165,6 +161,7 @@ const Draggable = ({
       const { clientX, clientY, target } = ev;
       draggableElem?.classList.remove('draggable');
       const bellowElement = getBellowElement(target as HTMLElement, clientX, clientY);
+      console.log(bellowElement);
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
 
@@ -172,8 +169,12 @@ const Draggable = ({
         from: draggableElemInfo.from,
         originId: draggableElemInfo.originId,
         dragId: draggableElemInfo.wordId,
-        currentZone: currentArea.current,
-        anchorId: bellowElement ? bellowElement.dataset.id : null,
+        currentArea: currentArea.current as 'waitingArea' | 'answersArea' | 'waitingAnchor',
+        anchorId: bellowElement
+          ? bellowElement.dataset.id || bellowElement.dataset.id === '0'
+            ? Number(bellowElement.dataset.id)
+            : null
+          : null,
       });
     },
     [

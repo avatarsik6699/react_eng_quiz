@@ -8,17 +8,18 @@
 
   &-info {
     margin-bottom: 20px;
-  }
-
-  &__btn-wrapper {
-    max-width: 320px;
-    width: 100%;
+    display: flex;
   }
 }
-.answers-zone-wrapper {
+.answers-wrapper {
   margin-bottom: 50px;
 }
 
-.pending-zone-wrapper {
+.waiting-wrapper {
   margin-bottom: 25px;
+}
+
+.btn-wrapper {
+  max-width: 320px;
+  width: 100%;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import './AnswerWord.scss';
-import { AnswerWordPropsType } from './AnswerWord.types';
-const AnswerWord = ({ content, style, onMouseDown }: AnswerWordPropsType) => {
+import { IAnswerWordProps } from './AnswerWord.types';
+const AnswerWord = ({ content, style, onMouseDown }: IAnswerWordProps) => {
   const cls = ['answer-word'];
   return (
     <span style={style ?? null} onMouseDown={onMouseDown ?? null} className={cls.join(' ')}>

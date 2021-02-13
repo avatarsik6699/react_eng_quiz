@@ -1,12 +1,15 @@
+import { IWord } from '../../atoms/AnswerWord/AnswerWord.types';
+import { TDragEndHandler, TDragMoveHandler, TDragStartHandler } from '../../pages/Quiz/Quiz.types';
+
 interface DraggablePropsType {
   children: React.ReactElement;
-  draggableElemInfo: any;
+  draggableElemInfo: IWord;
   isTransitioned: boolean;
   isBlockAnimaton: boolean;
-  originCoords: any;
-  dragStartHandler: any;
-  dragMoveHandler: any;
-  dragEndHandler: any;
+  originCoords: { x: number; y: number };
+  dragStartHandler: TDragStartHandler;
+  dragMoveHandler: TDragMoveHandler;
+  dragEndHandler: TDragEndHandler;
 }
 
 type InitTranslateCoords = {

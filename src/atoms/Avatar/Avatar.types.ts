@@ -1,3 +1,3 @@
-export interface AvatarPropsType {
+export interface IAvatarProps {
   src?: string;
 }

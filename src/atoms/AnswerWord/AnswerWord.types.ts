@@ -1,14 +1,14 @@
-interface AnswerWordPropsType {
+interface IAnswerWordProps {
   content: string;
   style?: any;
   onMouseDown?: any;
 }
 
-type WordElementType = {
+interface IWord {
   text: string;
   wordId: number;
   originId: number;
-  from: string;
-};
+  from: 'waiting' | 'answers';
+}
 
-export type { WordElementType, AnswerWordPropsType };
+export type { IWord, IAnswerWordProps };

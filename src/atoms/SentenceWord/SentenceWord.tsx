@@ -1,7 +1,7 @@
 import React from 'react';
-import { SentenceWordProps } from './SentenceWord.types';
+import { ISentenceWordProps } from './SentenceWord.types';
 import './SentenceWord.scss';
-const SentenceWord = ({ content }: SentenceWordProps) => {
+const SentenceWord = ({ content }: ISentenceWordProps) => {
   return <span className="sentence-word">{content}</span>;
 };
 

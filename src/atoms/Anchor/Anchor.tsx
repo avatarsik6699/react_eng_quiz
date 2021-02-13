@@ -6,7 +6,7 @@ const Anchor = ({ children, isHidden, isPrepared, isDataAttr, id }: IAnchorProps
   if (!isHidden) cls.push('anchor_show');
   if (isPrepared) cls.push('anchor_prepared');
   return (
-    <li className={cls.join(' ')} data-anchor={isDataAttr ? 'pendingAnchor' : null} data-id={isHidden ? null : id}>
+    <li className={cls.join(' ')} data-anchor={isDataAttr ? 'waitingAnchor' : null} data-id={isHidden ? null : id}>
       {children ?? null}
     </li>
   );

@@ -6,11 +6,11 @@ interface IAnchorProps {
   id: number;
 }
 
-type AnchorElementType = {
+type IAnchor = {
   anchorId: number;
   answerId: null | number;
   isHidden: boolean;
   isPrepared: boolean;
 };
 
-export type { IAnchorProps, AnchorElementType };
+export type { IAnchorProps, IAnchor };

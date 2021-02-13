@@ -1,13 +1,3 @@
-@keyframes shake {
-  from {
-    transform: rotate(15deg);
-  }
-  to {
-    transform: rotate(-15deg);
-    transform-origin: center center;
-  }
-}
-
 .answer-word {
   width: 70px;
   height: 30px;
@@ -26,10 +16,5 @@
 
   &:active {
     cursor: grabbing;
-  }
-
-  &_shaking {
-    animation: name duration timing-function delay iteration-count direction fill-mode;
-    animation: shake 100ms ease-in-out 0.1s 1 alternate;
   }
 }
