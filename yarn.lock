@@ -1147,6 +1147,18 @@
   resolved "https://registry.yarnpkg.com/@csstools/normalize.css/-/normalize.css-10.1.0.tgz#f0950bba18819512d42f7197e56c518aa491cf18"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
+"@eo-locale/core@^1.4.14":
+  version "1.4.14"
+  resolved "https://registry.yarnpkg.com/@eo-locale/core/-/core-1.4.14.tgz#cf404bda78036e814ccdf1c5daf9b9d785f21bd6"
+  integrity sha512-nJGdXKiJKbm0oJp/GQ79Eu73bzzewksVPrdxvsWfLLmxXs1tfiTR7n8iSoN0zdc4pEqSynNinDetywI8+piIaQ==
+
+"@eo-locale/react@^1.4.14":
+  version "1.4.14"
+  resolved "https://registry.yarnpkg.com/@eo-locale/react/-/react-1.4.14.tgz#c7f6a3a17a1a48cf6cbe18cf368585879589f616"
+  integrity sha512-WU5NpyrjUxf1OSxUnM8+jZpwwNlXtj5gMct11gEzcdGDC8FTCq546ZEkYEplrZQLSLW1DHScl72Apmzay8sJvQ==
+  dependencies:
+    "@eo-locale/core" "^1.4.14"
+
 "@eslint/eslintrc@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-0.3.0.tgz#d736d6963d7003b6514e6324bec9c602ac340318"

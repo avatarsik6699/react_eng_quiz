@@ -1,6 +1,7 @@
 interface IQuizProps {
-  sentenceText: TSentenceText[];
-  words: string[];
+  // sentenceText: TSentenceText[];
+  // words: string[];
+  quizId: string;
 }
 interface IOriginCoords {
   [key: string]: Coord;

@@ -1,21 +1,36 @@
 import { IAnchor } from '../../atoms/Anchor/Anchor.types';
 import { IWord } from '../../atoms/AnswerWord/AnswerWord.types';
 import { IOriginCoords } from './Quiz.types';
-const getCorrectWords = (words: string[]): IWord[] =>
-  words.map((text, index) => ({
+import { Translator } from '@eo-locale/core';
+import locales from '../../locales';
+
+const getCorrectWords = (language: 'ru' | 'en', target: 'answers' | 'correct', quizId: string): IWord[] => {
+  const words = new Translator(language, locales).translate(`${quizId}.${target}`);
+  return words.split(' ').map((text, index) => ({
     text,
     wordId: index,
     originId: index,
     from: 'waiting',
   }));
+};
 
-const getCorrectAnchors = (words: string[], targetAnchors: 'waiting' | 'answers'): IAnchor[] =>
-  words.map((_, index) => ({
+const getCorrectAnchors = (language: 'ru' | 'en', target: 'answers' | 'correct', quizId: string): IAnchor[] => {
+  const words = new Translator(language, locales).translate(`${quizId}.${target}`);
+  return words.split(' ').map((_, index) => ({
     anchorId: index,
-    isHidden: targetAnchors === 'answers',
+    isHidden: target === 'answers',
     answerId: null,
     isPrepared: false,
   }));
+};
+
+const getCorrectText = (quizId: string) => {
+  return new Translator('ru', locales).getMessageById(`${quizId}.correct`) as string;
+};
+
+const getQuestionText = (quizId: string) => {
+  return new Translator('en', locales).getMessageById(`${quizId}.question`) as string;
+};
 
 const getConvertedAnchors = <R extends IAnchor[] | { [key: string]: IAnchor }>(
   anchors: R
@@ -56,7 +71,7 @@ const calcOriginCoords = (
 };
 
 const getAnchorsDomCoords = (anchorsDomRoot: HTMLElement) =>
-  getAnchorsDomList(anchorsDomRoot).map((anchor) => ({
+  getAnchorsDomList(anchorsDomRoot).map(anchor => ({
     x: anchor.getBoundingClientRect().x,
     y: anchor.getBoundingClientRect().y,
   }));
@@ -78,11 +93,11 @@ const getIdBeforeDraggableElem = (
   };
 
   const isAnchorBusy =
-    draggableElem.from === 'waiting' ? true : wordsList.find((word) => word.wordId === draggableElem.originId);
+    draggableElem.from === 'waiting' ? true : wordsList.find(word => word.wordId === draggableElem.originId);
   let isBlocked = isAnchorBusy ? false : true;
   let shiftedId = action === 'put' ? draggableElem.originId : draggableElem.wordId;
   const result = wordsList
-    .filter((word) => {
+    .filter(word => {
       if (wordsArea === 'waiting') {
         if (isBlocked) return false;
         if (action === 'put') {
@@ -102,7 +117,7 @@ const getIdBeforeDraggableElem = (
         return word.wordId > draggableElem.wordId;
       }
     })
-    .map((word) => word.wordId);
+    .map(word => word.wordId);
   return result;
 };
 
@@ -114,23 +129,23 @@ const getUpdatedAnswersAnchors = (
   let targetAnchor;
   switch (action) {
     case 'setBusy': {
-      targetAnchor = [...anchors].reverse().find((anchor) => anchor.isPrepared);
+      targetAnchor = [...anchors].reverse().find(anchor => anchor.isPrepared);
       break;
     }
     case 'delBusy': {
-      targetAnchor = [...anchors].reverse().find((anchor) => anchor.answerId !== null);
+      targetAnchor = [...anchors].reverse().find(anchor => anchor.answerId !== null);
       break;
     }
     case 'disprepare': {
-      targetAnchor = [...anchors].reverse().find((anchor) => anchor.isPrepared && anchor.answerId === null);
+      targetAnchor = [...anchors].reverse().find(anchor => anchor.isPrepared && anchor.answerId === null);
       break;
     }
     case 'prepareLast': {
-      targetAnchor = [...anchors].reverse().find((anchor) => anchor.answerId !== null) as IAnchor;
+      targetAnchor = [...anchors].reverse().find(anchor => anchor.answerId !== null) as IAnchor;
       break;
     }
     default: {
-      targetAnchor = anchors.find((anchor) => anchor.answerId === null);
+      targetAnchor = anchors.find(anchor => anchor.answerId === null);
       break;
     }
   }
@@ -155,8 +170,8 @@ const getShiftedWords = (
 ) => {
   const { elementAction, directionShift } = settings;
 
-  const correctWords = elementAction === 'add' ? words : words.filter((word) => word.wordId !== dragId);
-  return correctWords.map((word) =>
+  const correctWords = elementAction === 'add' ? words : words.filter(word => word.wordId !== dragId);
+  return correctWords.map(word =>
     idBeforeDraggableElem.includes(word.wordId)
       ? {
           ...word,
@@ -182,4 +197,6 @@ export {
   getConvertedAnchors,
   getCorrectWords,
   getCorrectAnchors,
+  getCorrectText,
+  getQuestionText,
 };

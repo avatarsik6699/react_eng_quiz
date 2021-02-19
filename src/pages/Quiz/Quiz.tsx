@@ -18,6 +18,8 @@ import {
   getShiftedWords,
   getUpdatedAnswersAnchors,
   getAnchorsDomList,
+  getCorrectText,
+  getQuestionText,
 } from './Quiz.helpers';
 import Message from '../../atoms/Message/Message';
 import {
@@ -29,7 +31,7 @@ import {
   TDragStartHandler,
 } from './Quiz.types';
 import DropArea from '../../molecules/DropArea/DropArea';
-const Quiz = ({ sentenceText, words }: IQuizProps) => {
+const Quiz = ({ quizId }: IQuizProps) => {
   // result-info----------------------------------------------------------
   const [resultMessage, setResultMessage] = useState<string | null>(null);
   const [isError, setError] = useState<boolean | null>(null);
@@ -37,8 +39,8 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
   // animation-data------------------------------------------------------
   const [isBlockAnimaton, setBlockAnimation] = useState(false);
   const [dragEndEvent, setDragEndEvent] = useState<string>('');
-  const waitingRef = useRef(null) as RefObject<HTMLUListElement>;
-  const answersRef = useRef(null) as RefObject<HTMLDivElement>;
+  const waitingRef = useRef() as RefObject<HTMLUListElement>;
+  const answersRef = useRef() as RefObject<HTMLDivElement>;
   const isTransitioned = useRef(false);
   const [draggableId, setDraggableId] = useState<TDraggableId>(INITIAL_DRAGGABLE_ID);
 
@@ -46,10 +48,10 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
   const [waitingOriginCoords, setWaitingOriginCoords] = useState<IOriginCoords>({});
   const [answersOriginCoords, setAnswersOriginCoords] = useState<IOriginCoords>({});
   // words---------------------------------------------------------------
-  const [waitingWords, setWaitingWords] = useState<IWord[]>(getCorrectWords(words));
+  const [waitingWords, setWaitingWords] = useState<IWord[]>(getCorrectWords('ru', 'answers', quizId));
   const [answersWords, setAnswersWords] = useState<IWord[]>([]);
   // anchors-------------------------------------------------------------
-  const [answersAnchors, setAnswersAnchors] = useState(getCorrectAnchors(words, 'answers'));
+  const [answersAnchors, setAnswersAnchors] = useState(getCorrectAnchors('ru', 'answers', quizId));
 
   // HELPER FUNCTIONS---------------------------------------------
   const getNewOriginCoords = useCallback(
@@ -74,11 +76,11 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
   );
 
   const getAnswerPreparedAnchor = useCallback(
-    () => [...answersAnchors].reverse().find((anchor) => anchor.isPrepared) as IAnchor,
+    () => [...answersAnchors].reverse().find(anchor => anchor.isPrepared) as IAnchor,
     [answersAnchors]
   );
 
-  const getEmptyAnswerAnchor = (anchors: IAnchor[]) => anchors.find((anchor) => anchor.answerId === null) as IAnchor;
+  const getEmptyAnswerAnchor = (anchors: IAnchor[]) => anchors.find(anchor => anchor.answerId === null) as IAnchor;
 
   const isTargetWaitingAnchorBusy = (currentArea: string, anchorId: number) =>
     currentArea === 'waitingAnchor' && getAnchorsDomList(waitingRef.current as HTMLUListElement)[anchorId].children[0];
@@ -142,18 +144,16 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
 
   // HANDLER FUNCTIONS---------------------------------------------
   const checkAnswerHandler = useCallback(() => {
-    const correctText = sentenceText
-      .filter((item) => item.translation !== '')
-      .map((item) => item.translation.toLowerCase())
-      .join(' ');
-    const answersText = answersWords.map((word) => word.text).join(' ');
-    if (correctText === answersText) {
+    const correctText = getCorrectText(quizId);
+    const answersText = answersWords.map(word => word.text).join(' ');
+
+    if (correctText.localeCompare(answersText) === 0) {
       setResultMessage('is complete!!!');
     } else {
       setError(true);
       setResultMessage('something wrong');
     }
-  }, [answersWords, sentenceText]);
+  }, [answersWords, quizId]);
 
   const dragStartHandler: TDragStartHandler = useCallback(
     ({ dragId, from }) => {
@@ -357,7 +357,7 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
 
           setAnswersWords(shiftedAnswerWords);
           setAnswersAnchors(
-            answersAnchors.map((anchor) => (anchor.isPrepared ? { ...anchor, isPrepared: false } : anchor))
+            answersAnchors.map(anchor => (anchor.isPrepared ? { ...anchor, isPrepared: false } : anchor))
           );
           resetOriginCoords(100);
         }, TRANSITION_TIME);
@@ -380,11 +380,13 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
       <div className="quiz-info">
         <Avatar />
         <Sentence>
-          {sentenceText.map((word, index) => (
-            <li key={index}>
-              <SentenceWord content={word.text} />
-            </li>
-          ))}
+          {getQuestionText(quizId)
+            .split(' ')
+            .map((word, index) => (
+              <li key={index}>
+                <SentenceWord content={word} />
+              </li>
+            ))}
         </Sentence>
       </div>
       <div className="answers-wrapper">
@@ -409,7 +411,7 @@ const Quiz = ({ sentenceText, words }: IQuizProps) => {
           originCoords={waitingOriginCoords}
           areaName="waitingArea"
           words={waitingWords}
-          anchors={getCorrectAnchors(words, 'waiting')}
+          anchors={getCorrectAnchors('ru', 'correct', quizId)}
           isTransitioned={isTransitioned.current}
           isBlockAnimaton={isBlockAnimaton}
           ref={waitingRef}

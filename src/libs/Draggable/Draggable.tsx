@@ -88,7 +88,7 @@ const Draggable = ({
   }, []);
 
   const makeDraggableElement = () =>
-    React.Children.map(children, (item) =>
+    React.Children.map(children, item =>
       React.cloneElement(item, {
         ...item.props,
         style,
@@ -110,7 +110,7 @@ const Draggable = ({
       setDragStart(true);
       setDraggableElem(draggableElem);
 
-      setShiftCoords((prevState) => ({
+      setShiftCoords(prevState => ({
         ...prevState,
         shiftX: shiftCoords[0] - draggableElem.getBoundingClientRect().x,
         shiftY: shiftCoords[1] - draggableElem.getBoundingClientRect().y,
@@ -146,7 +146,7 @@ const Draggable = ({
         });
       }
 
-      setTranslateCoords((prevState) => ({
+      setTranslateCoords(prevState => ({
         ...prevState,
         x:
           ev instanceof TouchEvent
