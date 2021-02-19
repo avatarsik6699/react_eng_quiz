@@ -1,8 +1,8 @@
 import React from 'react';
 import { ISentenceWordProps } from './SentenceWord.types';
-import './SentenceWord.scss';
+import StyledSentenceWord from './SentenceWord.styles';
 const SentenceWord = ({ content }: ISentenceWordProps) => {
-  return <span className="sentence-word">{content}</span>;
+  return <StyledSentenceWord>{content}</StyledSentenceWord>;
 };
 
 export default React.memo(SentenceWord);

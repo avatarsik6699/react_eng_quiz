@@ -1,5 +1,11 @@
-export interface IButtonProps {
+interface IButtonProps {
   content: string;
   onclickHandler: any;
-  isTranslate: string | null;
+  isMove: boolean;
 }
+
+interface IStyledButtonProps {
+  isMove: boolean;
+}
+
+export type { IButtonProps, IStyledButtonProps };

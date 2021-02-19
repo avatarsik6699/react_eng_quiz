@@ -1,14 +1,12 @@
 import React from 'react';
-import './Button.scss';
+import StyledButton from './Button.styles';
 import { IButtonProps } from './Button.types';
 
-const Button = ({ content, onclickHandler, isTranslate }: IButtonProps) => {
-  const cls = ['button'];
-  if (isTranslate) cls.push('button_moved');
+const Button = ({ content, onclickHandler, isMove }: IButtonProps) => {
   return (
-    <button onClick={onclickHandler} className={cls.join(' ')}>
+    <StyledButton onClick={onclickHandler} isMove={isMove}>
       {content}
-    </button>
+    </StyledButton>
   );
 };
 

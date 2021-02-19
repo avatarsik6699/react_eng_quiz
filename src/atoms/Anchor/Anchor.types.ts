@@ -6,6 +6,11 @@ interface IAnchorProps {
   id: number;
 }
 
+interface IStyledAnchorProps {
+  isHidden: boolean;
+  isPrepared: boolean;
+}
+
 type IAnchor = {
   anchorId: number;
   answerId: null | number;
@@ -13,4 +18,4 @@ type IAnchor = {
   isPrepared: boolean;
 };
 
-export type { IAnchorProps, IAnchor };
+export type { IAnchorProps, IAnchor, IStyledAnchorProps };

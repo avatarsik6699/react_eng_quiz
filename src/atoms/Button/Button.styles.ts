@@ -1,4 +1,7 @@
-.button {
+import styled from 'styled-components';
+import { IStyledButtonProps } from './Button.types';
+
+const StyledButton = styled.button<IStyledButtonProps>`
   width: 100%;
   height: 50px;
   border: none;
@@ -26,8 +29,8 @@
     box-shadow: inset -2px -4px 12px #ffffff, inset 2px 4px 8px rgba(0, 0, 0, 0.2);
     border: none;
   }
-}
 
-.button_moved {
-  transform: translateY(60px);
-}
+  transform: ${props => props.isMove && 'translateY(60px)'};
+`;
+
+export default StyledButton;

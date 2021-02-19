@@ -1,13 +1,14 @@
-.sentence {
+import styled from 'styled-components';
+
+const StyledSentence = styled.div`
   position: relative;
   max-width: 200px;
   max-height: 69px;
   padding: 12px;
   border: 2px solid #252525;
   border-radius: 10px;
-}
-
-.sentence__tip {
+`;
+const SentenceTip = styled.span`
   display: inline-block;
   position: absolute;
   width: 7px;
@@ -37,9 +38,8 @@
     border-radius: 20px;
     background: black;
   }
-}
-
-.sentence__word-list {
+`;
+const SentenceList = styled.ul`
   display: flex;
   flex-flow: row wrap;
   gap: 7px;
@@ -48,8 +48,6 @@
   padding: 2px;
   list-style-type: none;
   overflow: auto;
-}
+`;
 
-.sentence__word-item {
-  flex: 1 0 auto;
-}
+export { SentenceList, SentenceTip, StyledSentence };

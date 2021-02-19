@@ -1,7 +1,8 @@
 import { ITitleProps } from './Title.types';
-import './Title.scss';
+import StyledTitle from './Title.styles';
+
 const Title = ({ content }: ITitleProps) => {
-  return <h1 className="title">{content}</h1>;
+  return <StyledTitle>{content}</StyledTitle>;
 };
 
 export default Title;

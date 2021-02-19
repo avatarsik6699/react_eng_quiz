@@ -1,9 +1,11 @@
-.avatar {
+import styled from 'styled-components';
+
+const StyledAvatar = styled.div`
   padding: 0px 40px;
   padding-bottom: 79px;
-}
+`;
 
-.avatar__img-default {
+const DefaultAvatar = styled.div`
   position: relative;
   width: 114px;
   height: 114px;
@@ -22,4 +24,6 @@
     border-top-right-radius: 5em;
     background: #6c6c6c;
   }
-}
+`;
+
+export { StyledAvatar, DefaultAvatar };

@@ -1,4 +1,6 @@
-.answer-word {
+import styled from 'styled-components';
+
+const StyledAnswerWord = styled.span`
   width: 70px;
   height: 30px;
   background: #ffffff;
@@ -14,8 +16,9 @@
   text-align: center;
   user-select: none;
   cursor: grab;
-
   &:active {
     cursor: grabbing;
   }
-}
+`;
+
+export { StyledAnswerWord };

@@ -1,13 +1,8 @@
 import React from 'react';
 import { IAvatarProps } from './Avatar.types';
-import './Avatar.scss';
+import { DefaultAvatar, StyledAvatar } from './Avatar.styles';
 const Avatar = ({ src }: IAvatarProps) => {
-  const cls = 'avatar__img';
-  return (
-    <div className="avatar">
-      {src ? <img className={cls} src={src} alt="avatar" /> : <div className={`${cls}-default`}></div>}
-    </div>
-  );
+  return <StyledAvatar>{src ? <img src={src} alt="avatar" /> : <DefaultAvatar />}</StyledAvatar>;
 };
 
 export default Avatar;

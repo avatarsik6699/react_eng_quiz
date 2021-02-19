@@ -1,12 +1,11 @@
 import React from 'react';
-import './App.scss';
+import StyledApp from './App.styles';
 import Quiz from './pages/Quiz/Quiz';
 const App = () => {
   return (
-    <div className="App">
-      {/* quizId will be taken from url  */}
+    <StyledApp className="App">
       <Quiz quizId={'q1'} />
-    </div>
+    </StyledApp>
   );
 };
 

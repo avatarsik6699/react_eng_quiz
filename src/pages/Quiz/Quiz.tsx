@@ -1,4 +1,3 @@
-import './Quiz.scss';
 import React, { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import Avatar from '../../atoms/Avatar/Avatar';
 import Button from '../../atoms/Button/Button';
@@ -31,6 +30,7 @@ import {
   TDragStartHandler,
 } from './Quiz.types';
 import DropArea from '../../molecules/DropArea/DropArea';
+import { QuizAnswersWrapper, QuizButtonWrapper, QuizInfo, QuizWaitingWrapper, StyledQuiz } from './Quiz.styles';
 const Quiz = ({ quizId }: IQuizProps) => {
   // result-info----------------------------------------------------------
   const [resultMessage, setResultMessage] = useState<string | null>(null);
@@ -375,9 +375,9 @@ const Quiz = ({ quizId }: IQuizProps) => {
   ]);
 
   return (
-    <div className="quiz">
+    <StyledQuiz>
       <Title content="Translate this sentence" />
-      <div className="quiz-info">
+      <QuizInfo>
         <Avatar />
         <Sentence>
           {getQuestionText(quizId)
@@ -388,8 +388,8 @@ const Quiz = ({ quizId }: IQuizProps) => {
               </li>
             ))}
         </Sentence>
-      </div>
-      <div className="answers-wrapper">
+      </QuizInfo>
+      <QuizAnswersWrapper className="answers-wrapper">
         <DropArea
           dragStartHandler={dragStartHandler}
           dragMoveHandler={dragMoveHandler}
@@ -402,8 +402,8 @@ const Quiz = ({ quizId }: IQuizProps) => {
           isBlockAnimaton={isBlockAnimaton}
           ref={answersRef}
         />
-      </div>
-      <div className="waiting-wrapper">
+      </QuizAnswersWrapper>
+      <QuizWaitingWrapper className="waiting-wrapper">
         <DropArea
           dragStartHandler={dragStartHandler}
           dragMoveHandler={dragMoveHandler}
@@ -416,16 +416,12 @@ const Quiz = ({ quizId }: IQuizProps) => {
           isBlockAnimaton={isBlockAnimaton}
           ref={waitingRef}
         />
-      </div>
+      </QuizWaitingWrapper>
       <Message content={resultMessage} isError={isError} />
-      <div className="btn-wrapper">
-        <Button
-          isTranslate={resultMessage}
-          onclickHandler={isBlockAnimaton ? null : checkAnswerHandler}
-          content="click"
-        />
-      </div>
-    </div>
+      <QuizButtonWrapper className="btn-wrapper">
+        <Button isMove={!!resultMessage} onclickHandler={isBlockAnimaton ? null : checkAnswerHandler} content="click" />
+      </QuizButtonWrapper>
+    </StyledQuiz>
   );
 };
 

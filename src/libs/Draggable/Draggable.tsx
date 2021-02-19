@@ -1,7 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { INITIAL_SHIFT_COORDS, INITIAL_TRANSLATE_COORDS, TRANSITION_TIME } from '../../settings/constants';
 import { DraggablePropsType, GetBellowElement } from './Draggable.types';
-import './Draggable.scss';
 
 const Draggable = ({
   draggableElemInfo,
@@ -78,24 +77,25 @@ const Draggable = ({
   );
 
   const getBellowElement: GetBellowElement = useCallback((target, x, y) => {
-    const matchList = ['[data-anchor="waitingAnchor"]', '.drop-area'];
+    const matchList = ['[data-anchor="waitingAnchor"]', '[data-dropname]'];
 
-    target.classList.add('hidden');
+    // target.classList.add('hidden');
+    target.style.visibility = 'hidden';
     const bellowElem = defineElemFromPoint(matchList, [x, y]);
-    target.classList.remove('hidden');
+    target.style.visibility = '';
 
     return bellowElem ?? (document.elementFromPoint(x, y) as HTMLElement);
   }, []);
 
   const makeDraggableElement = () =>
-    React.Children.map(children, item =>
-      React.cloneElement(item, {
+    React.Children.map(children, item => {
+      return React.cloneElement(item, {
         ...item.props,
         style,
         onMouseDown: isBlockAnimaton ? null : dragStart,
         onTouchStart: isBlockAnimaton ? null : dragStart,
-      })
-    );
+      });
+    });
 
   // HANDLER FUNCTIONS---------------------------------------------------
   const dragStart = useCallback(
@@ -106,7 +106,6 @@ const Draggable = ({
           : [0, 0];
 
       const draggableElem = ev.target as HTMLSpanElement;
-      draggableElem.classList.add('draggable');
       setDragStart(true);
       setDraggableElem(draggableElem);
 
@@ -233,6 +232,9 @@ const Draggable = ({
       ${translateCoords.y + originCoords.y}px)`
         : `translate(${originCoords.x}px, ${originCoords.y}px)`,
       transition: isDragStart || isTransitioned ? '' : `transform ${TRANSITION_TIME}ms ease`,
+      zIndex: isDragStart && 999,
+      position: isDragStart && 'absolute',
+      background: isDragStart && '#e9e8e8',
     }),
     [isDragStart, isTransitioned, originCoords.x, originCoords.y, translateCoords.x, translateCoords.y]
   );

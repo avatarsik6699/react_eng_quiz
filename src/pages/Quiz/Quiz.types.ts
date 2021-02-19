@@ -21,7 +21,6 @@ type TDragEndHandler = (params: {
 }) => void;
 
 type TDraggableId = { originId: number; wordId: number };
-type TSentenceText = { text: string; translation: string };
 
 type Coord = { x: number; y: number };
 export type { Coord, IQuizProps, TDraggableId, TDragStartHandler, TDragEndHandler, TDragMoveHandler, IOriginCoords };
