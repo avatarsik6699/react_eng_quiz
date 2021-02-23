@@ -14,13 +14,12 @@ const Draggable = ({
 }: DraggablePropsType) => {
   // ANIMATION CONTROL------------------------------------------------------------
   const [isDragStart, setDragStart] = useState(false);
-  const [draggableElem, setDraggableElem] = useState<HTMLElement | null>(null);
 
   // SETTINGS FOR DETERMINING THE CURRENT ZONE (bellow element)-------------------
   const inDropArea = useRef(false);
   const currentArea = useRef(draggableElemInfo.from === 'waiting' ? 'waitingArea' : 'answersArea');
   const prevDropArea = useRef(draggableElemInfo.from === 'waiting' ? 'waitingArea' : 'answersArea');
-  const debounce = useRef<string>();
+  const debounce = useRef<string | null>(null);
 
   // TRANSLATE COORDS-------------------------------------------------------------
   const [translateCoords, setTranslateCoords] = useState(INITIAL_TRANSLATE_COORDS);
@@ -79,7 +78,6 @@ const Draggable = ({
   const getBellowElement: GetBellowElement = useCallback((target, x, y) => {
     const matchList = ['[data-anchor="waitingAnchor"]', '[data-dropname]'];
 
-    // target.classList.add('hidden');
     target.style.visibility = 'hidden';
     const bellowElem = defineElemFromPoint(matchList, [x, y]);
     target.style.visibility = '';
@@ -107,7 +105,6 @@ const Draggable = ({
 
       const draggableElem = ev.target as HTMLSpanElement;
       setDragStart(true);
-      setDraggableElem(draggableElem);
 
       setShiftCoords(prevState => ({
         ...prevState,
@@ -175,16 +172,18 @@ const Draggable = ({
     (ev: MouseEvent | TouchEvent) => {
       const { clientX, clientY, target } = ev instanceof TouchEvent ? ev.changedTouches[0] : ev;
 
-      draggableElem?.classList.remove('draggable');
+      debounce.current = null;
       const bellowElement = getBellowElement(target as HTMLElement, clientX, clientY);
+      inDropArea.current = isDraggableElemInDropArea(bellowElement);
+      const currentAreaName = setCurrentArea(getBellowElemDataAttr(bellowElement));
+
       setDragStart(false);
       setTranslateCoords(INITIAL_TRANSLATE_COORDS);
-
       dragEndHandler({
         from: draggableElemInfo.from,
         originId: draggableElemInfo.originId,
         dragId: draggableElemInfo.wordId,
-        currentArea: currentArea.current as 'waitingArea' | 'answersArea' | 'waitingAnchor',
+        currentArea: currentAreaName as 'answersArea' | 'waitingArea' | 'waitingAnchor',
         anchorId: bellowElement
           ? bellowElement.dataset.id || bellowElement.dataset.id === '0'
             ? Number(bellowElement.dataset.id)
@@ -194,11 +193,12 @@ const Draggable = ({
     },
     [
       dragEndHandler,
-      draggableElem?.classList,
       draggableElemInfo.from,
       draggableElemInfo.originId,
       draggableElemInfo.wordId,
       getBellowElement,
+      isDraggableElemInDropArea,
+      setCurrentArea,
     ]
   );
 
